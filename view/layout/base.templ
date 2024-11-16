@@ -1,0 +1,74 @@
+package layout
+
+import "general_spider_controll_panel/types"
+
+templ Base(title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="description" content="Secure and reliable file hosting service. Upload, organize, and share your documents, images, videos, and more. Sign up now to keep your files always within reach."/>
+			<meta name="keywords" content="file hosting, file sharing, cloud storage, data storage, secure file hosting, filekeeper, drive, mega"/>
+			<meta name="author" content="Filekeeper"/>
+			<link href="/public/output.css" rel="stylesheet"/>
+			<title>{ title }</title>
+			<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+		</head>
+		<body>
+			<div id="content">
+				{ children... }
+			</div>
+		</body>
+	</html>
+}
+
+var navbarItems = []types.NavbarItems{
+	types.NavbarItems{
+		Key: "Home",
+		Url: "/home",
+	},
+	types.NavbarItems{
+		Key: "Spiders",
+		Url: "/spiders",
+	},
+	types.NavbarItems{
+		Key: "Config",
+		Url: "/config",
+	},
+	types.NavbarItems{
+		Key: "Deploy",
+		Url: "/deploy",
+	},
+}
+
+templ LeftNavbar(active string) {
+	<div class="w-64 bg-white border-r">
+		<div class="flex h-16 items-center border-b px-4">
+			<i class="ri-bug-line text-2xl text-blue-600"></i>
+			<span class="ml-2 text-lg font-semibold">Scrapy Dashboard</span>
+		</div>
+		<nav class="p-4">
+			<h2 class="mb-2 px-4 text-lg font-semibold tracking-tight">Overview</h2>
+			<ul class="space-y-1">
+				for _, item := range navbarItems {
+					if item.Key == active {
+						<li>
+							<a href={ templ.SafeURL(item.Url) } hx-get={ item.Url } hx-swap="innerHTML" hx-push-url="true" hx-target="#content" class="flex items-center rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-400 bg-gray-300">
+								<i class="ri-home-line mr-2"></i>
+								<span>{ item.Key }</span>
+							</a>
+						</li>
+					} else {
+						<li>
+							<a href={ templ.SafeURL(item.Url) } hx-get={ item.Url } hx-swap="innerHTML" hx-push-url="true" hx-target="#content" class="flex items-center rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100">
+								<i class="ri-home-line mr-2"></i>
+								<span>{ item.Key }</span>
+							</a>
+						</li>
+					}
+				}
+			</ul>
+		</nav>
+	</div>
+}

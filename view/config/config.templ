@@ -1,0 +1,458 @@
+package configView
+
+import "general_spider_controll_panel/view/layout"
+
+templ Main(title string) {
+	@layout.Base(title) {
+		<div class="flex h-screen">
+			@layout.LeftNavbar("Config")
+			<div class="container mx-auto p-4 bg-white rounded-lg shadow-md mt-8">
+				<h1 class="text-2xl font-bold mb-4">Configuration Dashboard</h1>
+				<div class="mb-4">
+					<label for="base-url" class="block font-semibold mb-1">Base URL</label>
+					<input
+						id="base-url"
+						type="text"
+						placeholder="Enter base URL"
+						class="w-full p-2 border border-gray-300 rounded-md"
+					/>
+				</div>
+				<div class="flex gap-4 mb-4">
+					<button id="add-config" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+						Add New
+						Configuration
+					</button>
+					<label class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 cursor-pointer">
+						Load from Disk
+						<input id="load-config" type="file" accept=".json" class="hidden"/>
+					</label>
+					<button
+						id="download-config"
+						class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600"
+					>
+						Download
+						Configuration
+					</button>
+					<button id="deploy-config" class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600">
+						Deploy
+						Configuration
+					</button>
+				</div>
+				<div id="config-container" class="space-y-2"></div>
+				<div class="mt-4">
+					<h2 class="text-xl font-semibold mb-2">JSON Preview</h2>
+					<pre id="json-preview" class="bg-gray-100 p-4 rounded-md overflow-x-auto max-h-96"></pre>
+				</div>
+			</div>
+		</div>
+		<script>
+        let configs = [{ id: '1', type: 'xpath', value: '', children: [], key: '' }];
+        let baseUrl = '';
+        let draggedElement = null;
+        let originalParent = null;
+        let originalNextSibling = null;
+
+        function renderConfigs() {
+            const container = document.getElementById('config-container');
+            container.innerHTML = '';
+            renderConfigItems(configs, container);
+            updateJsonPreview();
+            saveToLocalStorage();
+        }
+
+        function renderConfigItems(items, container) {
+            items.forEach(config => {
+                const configElement = createConfigElement(config);
+                container.appendChild(configElement);
+            });
+        }
+
+        function createConfigElement(config) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'config-item bg-gray-50 p-2 rounded-md border border-gray-200';
+            wrapper.dataset.id = config.id;
+            wrapper.dataset.type = config.type;
+            wrapper.dataset.key = config.key || '';
+            wrapper.dataset.value = config.value || '';
+            const content = document.createElement('div');
+            content.className = 'flex items-center space-x-2';
+            content.innerHTML = `
+                <div class="cursor-move text-gray-500 hover:text-gray-700">≡</div>
+                <select class="p-1 border border-gray-300 rounded-md">
+                    ${['xpath', '_list', '_pagination', '_loop', '@section'].map(type => `<option value="${type}" ${config.type === type ? 'selected' : ''}>${type}</option>`).join('')}
+                </select>
+                <input placeholder="Enter key" value="${config.key || ''}" class="p-1 border border-gray-300 rounded-md flex-grow ${['_pagination', '_list'].includes(config.type) ? 'hidden' : ''}">
+                <input placeholder="Enter value" value="${config.value || ''}" class="p-1 border border-gray-300 rounded-md flex-grow ${['@section'].includes(config.type) ? 'hidden' : ''}">
+                <button class="add-child px-2 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 ${['xpath', '_pagination'].includes(config.type) ? 'hidden' : ''}">+</button>
+                <button class="remove-config px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">-</button>
+            `;
+            wrapper.appendChild(content);
+
+            const typeSelect = content.querySelector('select');
+            const keyInput = content.querySelector('input[placeholder="Enter key"]');
+            const valueInput = content.querySelector('input[placeholder="Enter value"]');
+            const addButton = content.querySelector('button.add-child');
+            const removeButton = content.querySelector('button.remove-config');
+
+            typeSelect.onchange = (e) => updateConfig(wrapper, 'type', e.target.value);
+            keyInput.onchange = (e) => updateConfig(wrapper, 'key', e.target.value);
+            valueInput.onchange = (e) => updateConfig(wrapper, 'value', e.target.value);
+            if (addButton) addButton.onclick = () => addChild(config.id);
+            removeButton.onclick = () => removeConfig(config.id);
+
+            wrapper.draggable = true;
+            wrapper.addEventListener('dragstart', (e) => dragStart(e, config.id));
+            wrapper.addEventListener('dragend', dragEnd);
+            wrapper.addEventListener('dragover', dragOver);
+            wrapper.addEventListener('drop', (e) => drop(e, config.id));
+
+            if (config.children.length > 0 && config.type !== 'xpath') {
+                const childrenContainer = document.createElement('div');
+                childrenContainer.className = 'ml-4 mt-2 space-y-2';
+                renderConfigItems(config.children, childrenContainer);
+                wrapper.appendChild(childrenContainer);
+            }
+
+            return wrapper;
+        }
+
+        function updateConfig(element, field, value) {
+            element.dataset[field] = value;
+            if (field === 'type') {
+                const keyInput = element.querySelector('input[placeholder="Enter key"]');
+                const valueInput = element.querySelector('input[placeholder="Enter value"]');
+                const addButton = element.querySelector('button.add-child');
+
+                if (['_pagination', '_list'].includes(value)) {
+                    keyInput.classList.add('hidden');
+                    valueInput.classList.remove('hidden');
+                } else if (['@section'].includes(value)) {
+                    keyInput.classList.remove('hidden');
+                    valueInput.classList.add('hidden');
+                } else {
+                    keyInput.classList.remove('hidden');
+                    valueInput.classList.remove('hidden');
+                }
+
+                if (addButton) {
+                    addButton.classList.toggle('hidden', ['xpath', '_pagination'].includes(value));
+                }
+            }
+            rebuildConfigsFromDOM();
+            updateJsonPreview();
+            saveToLocalStorage();
+        }
+
+        function updateAddButtonVisibility(element) {
+            const type = element.dataset.type;
+            const addButton = element.querySelector('.add-child');
+            if (addButton) {
+                addButton.classList.toggle('hidden', ['xpath', '_pagination'].includes(type));
+            } else {
+
+            }
+        }
+
+        function rebuildConfigsFromDOM() {
+            const container = document.getElementById('config-container');
+            configs = buildConfigsFromElements(container.children);
+        }
+
+        function buildConfigsFromElements(elements) {
+            const result = [];
+            for (const element of elements) {
+                if (element.classList.contains('config-item')) {
+                    const config = {
+                        id: element.dataset.id,
+                        type: element.dataset.type,
+                        key: element.dataset.key,
+                        value: element.dataset.value,
+                        children: []
+                    };
+
+                    const childrenContainer = element.querySelector('div.ml-4');
+                    if (childrenContainer) {
+                        config.children = buildConfigsFromElements(childrenContainer.children);
+                    }
+                    result.push(config);
+                }
+            }
+            return result;
+        }
+
+        function addChild(parentId) {
+            const parentElement = document.querySelector(`.config-item[data-id="${parentId}"]`);
+            if (parentElement) {
+                const newConfig = { id: Date.now().toString(), type: 'xpath', value: '', children: [], key: '' };
+                const newElement = createConfigElement(newConfig);
+                let childrenContainer = parentElement.querySelector('div.ml-4');
+                if (!childrenContainer) {
+                    childrenContainer = document.createElement('div');
+                    childrenContainer.className = 'ml-4 mt-2 space-y-2';
+                    parentElement.appendChild(childrenContainer);
+                }
+                childrenContainer.appendChild(newElement);
+                rebuildConfigsFromDOM();
+                updateJsonPreview();
+                saveToLocalStorage();
+            }
+        }
+
+        function removeConfig(id) {
+            const element = document.querySelector(`.config-item[data-id="${id}"]`);
+            if (element) {
+                element.remove();
+                rebuildConfigsFromDOM();
+                updateJsonPreview();
+                saveToLocalStorage();
+            }
+        }
+
+        function dragStart(e, id) {
+            draggedElement = e.target.closest('.config-item');
+            originalParent = draggedElement.parentNode;
+            originalNextSibling = draggedElement.nextElementSibling;
+            e.dataTransfer.setData('text/plain', id);
+            setTimeout(() => {
+                draggedElement.classList.add('opacity-50', 'scale-105', 'shadow-lg');
+            }, 0);
+        }
+
+        function dragEnd(e) {
+            if (draggedElement) {
+                draggedElement.classList.remove('opacity-50', 'scale-105', 'shadow-lg');
+                if (!document.body.contains(draggedElement)) {
+                    if (originalNextSibling) {
+                        originalParent.insertBefore(draggedElement, originalNextSibling);
+                    } else {
+                        originalParent.appendChild(draggedElement);
+                    }
+                }
+                rebuildConfigsFromDOM();
+                updateJsonPreview();
+                saveToLocalStorage();
+            }
+            draggedElement = null;
+            originalParent = null;
+            originalNextSibling = null;
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+            const closestConfigItem = e.target.closest('.config-item');
+            if (closestConfigItem && closestConfigItem !== draggedElement) {
+                const rect = closestConfigItem.getBoundingClientRect();
+                const midpoint = (rect.top + rect.bottom) / 2;
+                if (e.clientY < midpoint) {
+                    closestConfigItem.parentNode.insertBefore(draggedElement, closestConfigItem);
+                } else {
+                    closestConfigItem.parentNode.insertBefore(draggedElement, closestConfigItem.nextSibling);
+                }
+            }
+        }
+
+        function drop(e, droppedOnId) {
+            e.preventDefault();
+            const draggedId = e.dataTransfer.getData('text');
+            if (draggedId !== droppedOnId) {
+                const droppedOnElement = document.querySelector(`.config-item[data-id="${droppedOnId}"]`);
+                if (droppedOnElement && !droppedOnElement.contains(draggedElement)) {
+                    droppedOnElement.parentNode.insertBefore(draggedElement, droppedOnElement.nextSibling);
+                }
+            }
+            draggedElement.classList.remove('opacity-50', 'scale-105', 'shadow-lg');
+            draggedElement = null;
+            rebuildConfigsFromDOM();
+            updateJsonPreview();
+            saveToLocalStorage();
+        }
+
+        function cleanupConfigs(configs) {
+            const structure = {};
+            configs.forEach(config => {
+                if (config.type === 'xpath') {
+                    structure[config.key] = config.value
+                } else if (config.type === '_list') {
+                    structure[config.type] = {
+                        _element: config.value,
+                        ...cleanupConfigs(config.children)
+                    };
+                } else if (config.type === '_loop') {
+                    structure[config.type] = {
+                        _element: config.value,
+                        _key: config.key,
+                        ...cleanupConfigs(config.children)
+                    };
+                } else if (config.type === '_pagination') {
+                    structure[config.type] = config.value
+                    cleanupConfigs(config.children);
+                } else if (config.type === '@section') {
+                    structure[config.key] = cleanupConfigs(config.children);
+                }
+            });
+            return structure;
+        }
+
+        function updateJsonPreview() {
+            const cleanConfigs = cleanupConfigs(configs);
+            const fullConfig = {
+                base_url: baseUrl,
+                cookies: {},
+                structure: cleanConfigs
+            };
+            document.getElementById('json-preview').textContent = JSON.stringify(fullConfig, null, 2);
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('configDashboardState', JSON.stringify({
+                configs: configs,
+                baseUrl: baseUrl
+            }));
+        }
+
+        function loadFromLocalStorage() {
+            const savedState = localStorage.getItem('configDashboardState');
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                configs = parsedState.configs;
+                baseUrl = parsedState.baseUrl;
+                document.getElementById('base-url').value = baseUrl;
+                renderConfigs();
+            }
+        }
+
+        function addNewConfig() {
+            const newConfig = { id: Date.now().toString(), type: 'xpath', value: '', children: [], key: '' };
+            const newElement = createConfigElement(newConfig);
+            document.getElementById('config-container').appendChild(newElement);
+            rebuildConfigsFromDOM();
+            updateJsonPreview();
+            saveToLocalStorage();
+        }
+
+        function downloadConfig() {
+            const cleanConfigs = cleanupConfigs(configs);
+            const fullConfig = {
+                base_url: baseUrl,
+                cookies: {},
+                structure: cleanConfigs
+            };
+            const blob = new Blob([JSON.stringify(fullConfig, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'config.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function deployConfig() {
+            const cleanConfigs = cleanupConfigs(configs);
+            const fullConfig = {
+                base_url: baseUrl,
+                cookies: {},
+                structure: cleanConfigs
+            };
+
+            fetch('/config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(fullConfig)
+            })
+                .then(response => response.json())
+                .then(data => console.log('Success:', data))
+                .catch((error) => console.error('Error:', error));
+        }
+
+        function loadConfig(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const loadedConfig = JSON.parse(event.target.result);
+                        baseUrl = loadedConfig.base_url || '';
+                        document.getElementById('base-url').value = baseUrl;
+                        configs = convertStructureToConfigs(loadedConfig.structure);
+                        renderConfigs();
+                    } catch (error) {
+                        console.error('Error parsing JSON:', error);
+                        alert('Error loading configuration. Please make sure it\'s a valid JSON file.');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function convertStructureToConfigs(structure) {
+            const result = [];
+            for (const [key, value] of Object.entries(structure)) {
+                if (typeof value === 'string') {
+                    if (key === '_pagination') {
+                        result.push({
+                            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                            type: '_pagination',
+                            key: value,
+                            value: value,
+                            children: []
+                        });
+                    } else {
+                        result.push({
+                            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                            type: 'xpath',
+                            key: key,
+                            value: value,
+                            children: []
+                        });
+                    }
+
+                } else if (typeof value === 'object') {
+                    const newConfig = {
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                        type: key.startsWith('@') ? '@section' : key,
+                        key: key.startsWith('@') ? key : '',
+                        value: value._element || '',
+                        children: []
+                    };
+                    if (key === '_loop') {
+                        newConfig.key = value._key;
+                    } else if (key === '_list') {
+                        newConfig.key = value._element;
+                    }
+                    const childConfigs = convertStructureToConfigs(
+                        Object.fromEntries(
+                            Object.entries(value).filter(([k]) => !['_element', '_key'].includes(k))
+                        )
+                    );
+                    newConfig.children = childConfigs;
+                    result.push(newConfig);
+                }
+            }
+            return result;
+        }
+
+        document.getElementById('add-config').addEventListener('click', addNewConfig);
+        document.getElementById('download-config').addEventListener('click', downloadConfig);
+        document.getElementById('deploy-config').addEventListener('click', deployConfig);
+        document.getElementById('load-config').addEventListener('change', loadConfig);
+        document.getElementById('base-url').addEventListener('change', (e) => {
+            baseUrl = e.target.value;
+            updateJsonPreview();
+            saveToLocalStorage();
+        });
+        document.getElementById('config-container').addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        loadFromLocalStorage();
+
+        if (configs.length === 0) {
+            renderConfigs();
+        }
+    </script>
+	}
+}

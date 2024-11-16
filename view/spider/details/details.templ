@@ -1,0 +1,205 @@
+package spiderDetailsView
+
+import (
+	"general_spider_controll_panel/types"
+	"general_spider_controll_panel/utils"
+	"general_spider_controll_panel/view/layout"
+)
+
+templ Main(title string) {
+	@layout.Base(title) {
+		<div class="flex h-screen">
+			@layout.LeftNavbar("Spiders")
+			<div class="flex-1 overflow-auto">
+				<div class="p-8">
+					<div class="flex justify-between items-center mb-6">
+						<h1 hx-get="?action=spider-name" hx-trigger="load" class="text-3xl font-bold">Spider Status: <span class="inline-block w-40 h-8 bg-gray-200 rounded animate-pulse"></span></h1>
+						<button id="refreshButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center">
+							<i class="ri-refresh-line mr-2"></i> Refresh
+						</button>
+					</div>
+					<div class="bg-white shadow-md rounded-lg p-6 mb-6">
+						<div hx-get="?action=spider-status" hx-trigger="load" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+							<div class="space-y-2">
+								<div class="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-24 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="space-y-2">
+								<div class="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="space-y-2">
+								<div class="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-16 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="space-y-2">
+								<div class="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-20 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+						</div>
+					</div>
+					<div class="bg-white shadow-md rounded-lg p-6 mb-6">
+						<h2 class="text-xl font-semibold mb-4">Performance Metrics</h2>
+						<div hx-get="?action=performance-metrics" hx-trigger="load" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							<div class="space-y-2">
+								<div class="w-28 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-20 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="space-y-2">
+								<div class="w-36 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-16 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="space-y-2">
+								<div class="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-12 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="space-y-2">
+								<div class="w-28 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-16 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="space-y-2">
+								<div class="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-20 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="space-y-2">
+								<div class="w-16 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-8 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+						</div>
+					</div>
+					<div class="bg-white shadow-md rounded-lg p-6 mb-6">
+						<h2 class="text-xl font-semibold mb-4">HTTP Status Codes</h2>
+						<div hx-get="?action=http-status" hx-trigger="load" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
+							<div class="bg-gray-100 p-4 rounded-lg space-y-2">
+								<div class="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-16 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="bg-gray-100 p-4 rounded-lg space-y-2">
+								<div class="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-12 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="bg-gray-100 p-4 rounded-lg space-y-2">
+								<div class="w-28 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-12 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+							<div class="bg-gray-100 p-4 rounded-lg space-y-2">
+								<div class="w-28 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-12 h-6 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+						</div>
+					</div>
+					<div class="bg-white shadow-md rounded-lg p-6 mb-6">
+						<h2 class="text-xl font-semibold mb-4">Logs (Last 40 lines)</h2>
+						<div hx-get="?action=spider-logs" hx-trigger="load" class="bg-gray-100 p-4 rounded-lg">
+							<div class="space-y-2">
+								<div class="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-3/4 h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
+								<div class="w-5/6 h-4 bg-gray-200 rounded animate-pulse"></div>
+							</div>
+						</div>
+					</div>
+					<div class="flex justify-end space-x-4">
+						<button id="stopButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+							Stop Spider
+						</button>
+						<button id="pauseButton" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded">
+							Pause Spider
+						</button>
+						<button id="restartButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+							Restart Spider
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ SpiderNameUI(name string) {
+	<span>{ name }</span>
+}
+
+templ PerformanceMatricsUI(spider *types.SpiderDetails) {
+	<div>
+		<h3 class="text-sm font-medium text-gray-500">CPU Usage</h3>
+		<p class="mt-1 text-lg font-semibold" id="cpuUsage">{ spider.Detail.Cpu }</p>
+	</div>
+	<div>
+		<h3 class="text-sm font-medium text-gray-500">Memory Usage</h3>
+		<p class="mt-1 text-lg font-semibold" id="memoryUsage">{ utils.ConvertFileSize(spider.Detail.Mem) }</p>
+	</div>
+	<div>
+		<h3 class="text-sm font-medium text-gray-500">PID</h3>
+		<p class="mt-1 text-lg font-semibold" id="memoryUsage">{ utils.IntToString(spider.Spider.Pid) }</p>
+	</div>
+	<div>
+		<h3 class="text-sm font-medium text-gray-500">Node Name</h3>
+		<p class="mt-1 text-lg font-semibold" id="networkIO">{ spider.Detail.NodeName }</p>
+	</div>
+}
+
+templ SpiderLogsUI(spider *types.SpiderDetails) {
+	<pre id="spiderLogs" class="whitespace-pre-wrap text-sm font-mono h-64 overflow-y-auto">
+		for _, tailLog := range spider.Log {
+			{ tailLog }
+		}
+	</pre>
+}
+
+templ SpiderStatusUI(spider *types.SpiderDetails) {
+	<div>
+		<h2 class="text-sm font-medium text-gray-500">Status</h2>
+		<p class="mt-1 text-xl font-semibold text-green-600" id="spiderStatus">{ spider.Currstate }</p>
+	</div>
+	<div>
+		<h2 class="text-sm font-medium text-gray-500">Start Time</h2>
+		<p class="mt-1 text-xl font-semibold" id="startTime">{ spider.Spider.StartTime }</p>
+	</div>
+	<div>
+		<h2 class="text-sm font-medium text-gray-500">End Time</h2>
+		<p class="mt-1 text-xl font-semibold" id="runtime">{ spider.Spider.EndTime }</p>
+	</div>
+	<div>
+		<h2 class="text-sm font-medium text-gray-500">Items Scraped</h2>
+		<p class="mt-1 text-xl font-semibold" id="itemsScraped">{ utils.IntToString(spider.Detail.CrawledCount) }</p>
+	</div>
+}
+
+templ HttpStatusUI(spider *types.SpiderDetails) {
+	for _, code := range spider.Detail.CrawledDetail {
+		switch code.BaseGroup {
+			case "1xx":
+				<div class="bg-green-100 p-4 rounded-lg">
+					<h3 class="text-sm font-medium text-green-800">{ utils.IntToString(code.Code) }</h3>
+					<p class="mt-1 text-2xl font-semibold text-green-600">{ utils.IntToString(code.Count) }</p>
+				</div>
+			case "2xx":
+				<div class="bg-green-100 p-4 rounded-lg">
+					<h3 class="text-sm font-medium text-green-800">{ utils.IntToString(code.Code) }</h3>
+					<p class="mt-1 text-2xl font-semibold text-green-600">{ utils.IntToString(code.Count) }</p>
+				</div>
+			case "3xx":
+				<div class="bg-yellow-100 p-4 rounded-lg">
+					<h3 class="text-sm font-medium text-yellow-800">{ utils.IntToString(code.Code) }</h3>
+					<p class="mt-1 text-2xl font-semibold text-yellow-600">{ utils.IntToString(code.Count) }</p>
+				</div>
+			case "4xx":
+				<div class="bg-red-100 p-4 rounded-lg">
+					<h3 class="text-sm font-medium text-red-800">{ utils.IntToString(code.Code) }</h3>
+					<p class="mt-1 text-2xl font-semibold text-red-600">{ utils.IntToString(code.Count) }</p>
+				</div>
+			case "5xx":
+				<div class="bg-purple-100 p-4 rounded-lg">
+					<h3 class="text-sm font-medium text-purple-800">{ utils.IntToString(code.Code) }</h3>
+					<p class="mt-1 text-2xl font-semibold text-purple-600">{ utils.IntToString(code.Count) }</p>
+				</div>
+			default:
+				<div class="bg-orange-100 p-4 rounded-lg">
+					<h3 class="text-sm font-medium text-orange-800">{ utils.IntToString(code.Code) }</h3>
+					<p class="mt-1 text-2xl font-semibold text-orange-600">{ utils.IntToString(code.Count) }</p>
+				</div>
+		}
+	}
+}
