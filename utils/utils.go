@@ -1,19 +1,35 @@
 package utils
 
 import (
+	"crypto/md5"
 	cryptoRand "crypto/rand"
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"general_spider_controll_panel/types"
+	"github.com/joho/godotenv"
 	mathRand "math/rand"
 	"net/http"
+	"os"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+type Env struct {
+	value map[string]string
+	mu    sync.Mutex
+}
+
+var env *Env
+
+func init() {
+	env = &Env{value: map[string]string{}}
+}
 
 func ClientIP(request *http.Request) string {
 	ip := request.Header.Get("Cf-Connecting-IP")
@@ -39,6 +55,11 @@ func ClientIP(request *http.Request) string {
 	}
 
 	return ip
+}
+
+func GetMD5Hash(text string) string {
+	hash := md5.Sum([]byte(text))
+	return hex.EncodeToString(hash[:])
 }
 
 func HashPassword(password string) (string, error) {
@@ -85,6 +106,54 @@ func ConvertFileSize[T types.Number](size T) string {
 	} else {
 		return fmt.Sprintf("%.2f GB", float64(sizeInBytes)/(1024*1024*1024))
 	}
+}
+
+func ConvertTIme(timestampMillis int64) string {
+	t := time.UnixMilli(timestampMillis)
+
+	now := time.Now()
+	duration := now.Sub(t)
+	fmt.Println("time now : ", now)
+	fmt.Println("time compare : ", t)
+	fmt.Println("time diff : ", duration)
+
+	if duration < time.Minute {
+		return fmt.Sprintf("%d seconds ago", int(duration.Seconds()))
+	} else if duration < time.Hour {
+		return fmt.Sprintf("%d minutes ago", int(duration.Minutes()))
+	} else if duration < time.Hour*24 {
+		return fmt.Sprintf("%d hours ago", int(duration.Hours()))
+	} else if duration < time.Hour*24*30 {
+		return fmt.Sprintf("%d days ago", int(duration.Hours()/24))
+	} else if duration < time.Hour*24*365 {
+		return fmt.Sprintf("%d months ago", int(duration.Hours()/(24*30)))
+	} else {
+		return fmt.Sprintf("%d years ago", int(duration.Hours()/(24*365)))
+	}
+}
+
+func Getenv(key string) string {
+	env.mu.Lock()
+	defer env.mu.Unlock()
+	if val, ok := env.value[key]; ok {
+		return val
+	}
+
+	if os.Getenv("HOSTNAME") == "" {
+		err := godotenv.Load(".env")
+		if err != nil {
+			panic("Error loading .env file: " + err.Error())
+		}
+	}
+
+	val := os.Getenv(key)
+	env.value[key] = val
+
+	if val == "" {
+		panic("Asking for env: " + key + " but got nothing, please set your environment first")
+	}
+
+	return val
 }
 
 func GenerateRandomString(length int) string {

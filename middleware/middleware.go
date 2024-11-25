@@ -20,6 +20,6 @@ func Logger(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(wrappedWriter, request)
-		fmt.Printf("%s %s %v", request.Method, request.RequestURI, wrappedWriter.statusCode)
+		fmt.Printf("%s %s %v \n", request.Method, request.RequestURI, wrappedWriter.statusCode)
 	})
 }

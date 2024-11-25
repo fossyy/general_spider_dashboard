@@ -2,32 +2,59 @@ package app
 
 import (
 	"bytes"
+	_ "embed"
+	"encoding/json"
 	"fmt"
 	"general_spider_controll_panel/types"
+	"general_spider_controll_panel/utils"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"os"
 )
 
-var scrapydURL = "http://localhost:6800"
-var project = "general"
-var spider = "general_engine"
+var scrapydURL = utils.Getenv("SCRAPYD_URL")
 var version = "1.0"
-var eggPath = "general.egg"
+
+var Server *App
+
+//go:embed general.egg
+var egg []byte
 
 type App struct {
 	http.Server
 	Database types.Database
 }
 
-func uploadEgg(scrapydURL, project, version, eggPath string) error {
-	eggFile, err := os.Open(eggPath)
-	if err != nil {
-		return fmt.Errorf("failed to open egg file: %w", err)
-	}
-	defer eggFile.Close()
+type ScrapydProjectsResponse struct {
+	Status   string   `json:"status"`
+	Projects []string `json:"projects"`
+}
 
+func GetAllProjects(scrapydURL string) ([]string, error) {
+	url := fmt.Sprintf("%s/listprojects.json", scrapydURL)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch projects from Scrapyd: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch projects, status: %s", resp.Status)
+	}
+
+	var projectsResponse ScrapydProjectsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&projectsResponse); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	if projectsResponse.Status != "ok" {
+		return nil, fmt.Errorf("unexpected response status: %s", projectsResponse.Status)
+	}
+
+	return projectsResponse.Projects, nil
+}
+
+func UploadEgg(scrapydURL, project, version string) error {
 	var requestBody bytes.Buffer
 	writer := multipart.NewWriter(&requestBody)
 
@@ -39,11 +66,11 @@ func uploadEgg(scrapydURL, project, version, eggPath string) error {
 		return fmt.Errorf("failed to add version field: %w", err)
 	}
 
-	part, err := writer.CreateFormFile("egg", eggPath)
+	part, err := writer.CreateFormFile("egg", "general.egg")
 	if err != nil {
 		return fmt.Errorf("failed to add egg file field: %w", err)
 	}
-	if _, err := io.Copy(part, eggFile); err != nil {
+	if _, err := io.Copy(part, bytes.NewReader(egg)); err != nil {
 		return fmt.Errorf("failed to copy egg file data: %w", err)
 	}
 
@@ -73,9 +100,25 @@ func uploadEgg(scrapydURL, project, version, eggPath string) error {
 	return nil
 }
 
+func UploadEggToAllProjects(scrapydURL, version string, database types.Database) error {
+	projects, err := database.GetDomains()
+	if err != nil {
+		return fmt.Errorf("failed to get projects: %w", err)
+	}
+
+	for _, project := range projects {
+		fmt.Printf("Uploading egg to project: %s\n", project)
+		if err := UploadEgg(scrapydURL, project, version); err != nil {
+			fmt.Printf("Failed to upload egg to project %s: %v\n", project, err)
+		}
+	}
+
+	return nil
+}
+
 func NewApp(addr string, handler http.Handler, database types.Database) *App {
-	if err := uploadEgg(scrapydURL, project, version, eggPath); err != nil {
-		panic("Error uploading egg: " + err.Error())
+	if err := UploadEggToAllProjects(scrapydURL, version, database); err != nil {
+		panic("Error: " + err.Error())
 	}
 	return &App{
 		Server: http.Server{

@@ -1,0 +1,31 @@
+FROM python:alpine
+
+WORKDIR /scrapyd
+
+RUN apk --no-cache add --virtual build-dependencies \
+   gcc \
+   musl-dev \
+   libffi-dev \
+   libressl-dev \
+   libxml2-dev \
+   libxslt-dev \
+ && apk del build-dependencies \
+ && apk add \
+   libressl \
+   libxml2 \
+   libxslt \
+   postgresql-dev \
+   git \
+ && pip install --no-cache-dir \
+   scrapyd \
+   psycopg2 \
+   python-dotenv \
+   git+https://github.com/dpkp/kafka-python.git
+
+VOLUME /etc/scrapyd/ /var/lib/scrapyd/
+
+COPY ./scrapyd.conf /etc/scrapyd/
+
+EXPOSE 6800
+
+ENTRYPOINT ["scrapyd", "--pidfile="]

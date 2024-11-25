@@ -1,0 +1,38 @@
+2024-11-25 21:19:18 INFO: Crawled 0 pages (at 0 pages/min), scraped 0 items (at 0 items/min)
+2024-11-25 21:19:18 INFO: Telnet console listening on 127.0.0.1:6023
+2024-11-25 21:19:18 ERROR: Error while obtaining start requests
+Traceback (most recent call last):
+  File "/home/bagas/GolandProjects/general_spider_controll_panel/python/lib/python3.12/site-packages/scrapy/core/engine.py", line 185, in _next_request
+    request_or_item = next(self.slot.start_requests)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bagas/GolandProjects/general_spider_controll_panel/eggs/bbzzzsvqcrqtki6umym6itiixfhni37ybtt7mkbjyxn2pgllzxf2qgyd.onion/1_0.egg/scrapy_engine/spiders/general_engine.py", line 106, in start_requests
+    yield Request(url=self.config['base_url'], callback=self.parse_structure, headers=self.headers, cookies=self.cookies, cb_kwargs={"structure": self.config["structure"]}, meta={'proxy': self.get_proxy()})
+                                                                                                                                                                                            ^^^^^^^^^^^^^^^^
+  File "/home/bagas/GolandProjects/general_spider_controll_panel/eggs/bbzzzsvqcrqtki6umym6itiixfhni37ybtt7mkbjyxn2pgllzxf2qgyd.onion/1_0.egg/scrapy_engine/spiders/general_engine.py", line 101, in get_proxy
+    current_proxy_now = self.current_proxy % len(self.proxies)
+                                             ^^^^^^^^^^^^^^^^^
+TypeError: object of type 'NoneType' has no len()
+2024-11-25 21:19:18 INFO: Closing spider (finished)
+2024-11-25 21:19:18 ERROR: Scraper close failure
+Traceback (most recent call last):
+  File "/home/bagas/GolandProjects/general_spider_controll_panel/python/lib/python3.12/site-packages/twisted/internet/defer.py", line 1088, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bagas/GolandProjects/general_spider_controll_panel/eggs/bbzzzsvqcrqtki6umym6itiixfhni37ybtt7mkbjyxn2pgllzxf2qgyd.onion/1_0.egg/scrapy_engine/pipelines.py", line 138, in close_spider
+    with open(self.output_file, 'a', encoding = 'utf-8') as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+2024-11-25 21:19:18 INFO: Dumping Scrapy stats:
+{'elapsed_time_seconds': 0.011563,
+ 'finish_reason': 'finished',
+ 'finish_time': datetime.datetime(2024, 11, 25, 14, 19, 18, 372880, tzinfo=datetime.timezone.utc),
+ 'items_per_minute': None,
+ 'log_count/DEBUG': 5,
+ 'log_count/ERROR': 2,
+ 'log_count/INFO': 10,
+ 'log_count/WARNING': 1,
+ 'memusage/max': 83480576,
+ 'memusage/startup': 83480576,
+ 'responses_per_minute': None,
+ 'start_time': datetime.datetime(2024, 11, 25, 14, 19, 18, 361317, tzinfo=datetime.timezone.utc)}
+2024-11-25 21:19:18 INFO: Spider closed (finished)

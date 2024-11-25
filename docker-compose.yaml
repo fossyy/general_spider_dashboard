@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16.0
+    environment:
+      POSTGRES_PASSWORD: VerySecretPassword
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - scrapyd
+
+  scrapyd:
+    image: fossyy/backup:scrapyd
+    restart: on-failure
+    volumes:
+      - /opt/general_engine:/scrapyd:Z
+      - /opt/general_engine/logs:/scrapyd/logs
+    environment:
+      - ENABLE_MONITOR=True
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=VerySecretPassword
+      - DB_NAME=config
+    networks:
+      - scrapyd
+
+  general_engine_dashboard:
+    image: fossyy/backup:general_engine_dashboard
+    restart: on-failure
+    depends_on:
+      - scrapyd
+      - postgres
+    links:
+      - scrapyd
+    ports:
+      - "8081:8080"
+    volumes:
+      - /opt/general_engine/logs:/general/logs
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=VerySecretPassword
+      - DB_NAME=config
+      - SCRAPYD_URL=http://scrapyd:6800
+      - torproxy1,
+    networks:
+      - scrapyd
+
+  torproxy:
+    image: dperson/torproxy
+    environment:
+      - BW=100
+    ports:
+      - "9050-9099:9050"
+      - "8118-8167:8118"
+    deploy:
+      mode: replicated
+      replicas: 5
+    restart: always
+    networks:
+      - scrapyd
+
+volumes:
+  scrapyd-volume:
+  postgres:
+
+networks:
+  scrapyd:

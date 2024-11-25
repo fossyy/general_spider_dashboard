@@ -1,6 +1,8 @@
 package types
 
-import "general_spider_controll_panel/types/models"
+import (
+	"general_spider_controll_panel/types/models"
+)
 
 type NavbarItems struct {
 	Key string
@@ -8,7 +10,16 @@ type NavbarItems struct {
 }
 
 type ScrapydResponseGetingSpiders struct {
-	Pending []interface{} `json:"pending"`
+	NodeName string `json:"node_name"`
+	Status   string `json:"status"`
+	Pending  []struct {
+		Id       string                 `json:"id"`
+		Project  string                 `json:"project"`
+		Spider   string                 `json:"spider"`
+		Version  string                 `json:"version"`
+		Settings map[string]interface{} `json:"settings"`
+		Args     map[string]interface{} `json:"args"`
+	} `json:"pending"`
 	Running []struct {
 		Id        string `json:"id"`
 		Project   string `json:"project"`
@@ -27,8 +38,14 @@ type ScrapydResponseGetingSpiders struct {
 		LogUrl    string `json:"log_url"`
 		ItemsUrl  string `json:"items_url"`
 	} `json:"finished"`
-	Status   string `json:"status"`
-	NodeName string `json:"node_name"`
+}
+
+type DomainStats struct {
+	Domain         string `json:"domain"`
+	LastCrawled    string `json:"last_crawled"`
+	ActiveSpider   uint64 `json:"active_spider"`
+	PendingSpider  uint64 `json:"pending_spider"`
+	FinishedSpider uint64 `json:"finished_spider"`
 }
 
 type Spider struct {
@@ -40,21 +57,23 @@ type Spider struct {
 	EndTime   string `json:"end_time"`
 	LogUrl    string `json:"log_url"`
 	ItemsUrl  string `json:"items_url"`
+	Status    string `json:"status"`
+	NodeName  string `json:"node_name"`
 }
 
-type SpiderDetails struct {
-	NodeName  string `json:"node_name"`
-	Status    string `json:"status"`
-	Currstate string `json:"currstate"`
-	Spider    *Spider
-	Detail    struct {
-		Cpu           string `json:"cpu"`
-		Mem           uint64 `json:"mem"`
-		NodeName      string `json:"node_name"`
-		CrawledCount  uint64 `json:"crawled_count"`
-		CrawledDetail []StatusCode
-	}
-	Log []string `json:"log"`
+type SpiderDetail struct {
+	Cpu           string `json:"cpu"`
+	Mem           uint64 `json:"mem"`
+	NodeName      string `json:"node_name"`
+	PID           int    `json:"pid"`
+	CrawledCount  uint64 `json:"crawled_count"`
+	CrawledDetail []StatusCode
+	Log           []string `json:"log"`
+	Status        string   `json:"status"`
+	Name          string   `json:"name"`
+	Id            string   `json:"id"`
+	StartTime     string   `json:"start_time"`
+	EndTime       string   `json:"end_time"`
 }
 
 type StatusCode struct {
@@ -77,7 +96,44 @@ type ScrapydResponse struct {
 	Jobid string `json:"jobid"`
 }
 
+type ConfigDetail struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type JobIDDetail struct {
+	JobID string `json:"jobid"`
+	StatusCode
+	CrawledCount uint64 `json:"crawled_count"`
+}
+
+type ProxyStatus string
+
+const (
+	Online    ProxyStatus = "Online"
+	Offline   ProxyStatus = "Offline"
+	Checking  ProxyStatus = "Checking"
+	Unchecked ProxyStatus = "Unchecked"
+)
+
+type Proxy struct {
+	Address  string      `json:"address"`
+	Port     string      `json:"port"`
+	Protocol string      `json:"protocol"`
+	Status   ProxyStatus `json:"status"`
+}
+
 type Database interface {
 	CreateConfig(config *models.Config) error
-	GetConfigByID(id uint) (*models.Config, error)
+	GetConfigByID(id string) (*models.Config, error)
+	GetConfigsIDByDomain(domain string) ([]string, error)
+	GetConfigNameAndIDByDomain(domain string) ([]*ConfigDetail, error)
+	GetDomains() ([]string, error)
+	GetConfigs() ([]*models.Config, error)
+
+	GetProxies() ([]*models.Proxy, error)
+	GetProxyByID(id string) (*models.Proxy, error)
+	CreateProxy(proxy *models.Proxy) (*models.Proxy, error)
+	UpdateProxyStatus(addr string, status models.ProxyStatus) error
+	RemoveProxy(addr string) error
 }
