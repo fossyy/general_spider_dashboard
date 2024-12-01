@@ -6,61 +6,67 @@ import (
 	"general_spider_controll_panel/view/layout"
 )
 
-templ Main(title string) {
+templ Main(title string, spider *types.SpiderDetail, statusCodes []*types.StatusCode) {
 	@layout.Base(title) {
 		<div class="flex h-screen">
 			@layout.LeftNavbar("Spiders")
 			<div class="flex-1 overflow-auto">
 				<div class="p-8">
-					<div class="flex justify-between items-center mb-6">
-						<h1 hx-get="?action=spider-name" hx-trigger="load" class="text-3xl font-bold overflow-auto">Spider Status: <span class="inline-block w-40 h-8 bg-gray-200 rounded animate-pulse"></span></h1>
+					<div class="flex justify-between items-start mb-6">
+						<h1 class="text-3xl font-bold overflow-auto"><span>{ spider.Name + "_" + spider.Id }</span></h1>
 					</div>
 					<div class="bg-white shadow-md rounded-lg p-6 mb-6">
-						<div hx-get="?action=spider-status" hx-trigger="load" id="spider-status-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-							<div class="space-y-2">
-								<div class="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-24 h-6 bg-gray-200 rounded animate-pulse"></div>
+						<div id="spider-status-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+							<div>
+								<h2 class="text-sm font-medium text-gray-500">Status</h2>
+								<p class="mt-1 text-xl font-semibold text-green-600" id="spiderStatus">{ spider.Status }</p>
 							</div>
-							<div class="space-y-2">
-								<div class="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
+							<div>
+								<h2 class="text-sm font-medium text-gray-500">Start Time</h2>
+								<p class="mt-1 text-xl font-semibold" id="startTime">{ spider.StartTime }</p>
 							</div>
-							<div class="space-y-2">
-								<div class="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-16 h-6 bg-gray-200 rounded animate-pulse"></div>
+							<div>
+								<h2 class="text-sm font-medium text-gray-500">End Time</h2>
+								<p class="mt-1 text-xl font-semibold" id="runtime">{ spider.EndTime }</p>
 							</div>
-							<div class="space-y-2">
-								<div class="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-20 h-6 bg-gray-200 rounded animate-pulse"></div>
+							<div>
+								<div class="flex">
+									<h2 class="text-sm font-medium text-gray-500">Items Scraped</h2>
+									<span class="relative inline-block ml-2">
+										<input type="checkbox" id="tooltip-toggle-status-code" class="tooltip-toggle-status-code sr-only peer"/>
+										<label for="tooltip-toggle-status-code" class="group cursor-help">
+											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-500">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"></path>
+											</svg>
+										</label>
+										<span class="tooltip-content absolute z-10 top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 p-2 bg-black text-white text-sm rounded opacity-0 transition-opacity duration-300 invisible group-hover:opacity-100 group-hover:visible peer-checked:opacity-100 peer-checked:visible">
+											Items scraped/crawled are the saved data exported to the desired output destination.
+											<span class="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-8 border-transparent border-b-black"></span>
+										</span>
+									</span>
+								</div>
+								<p class="mt-1 text-xl font-semibold" id="itemsScraped">{ utils.IntToString(spider.CrawledCount) }</p>
 							</div>
 						</div>
 					</div>
 					<div class="bg-white shadow-md rounded-lg p-6 mb-6">
 						<h2 class="text-xl font-semibold mb-4">Performance Metrics</h2>
-						<div hx-get="?action=performance-metrics" hx-trigger="load" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-							<div class="space-y-2">
-								<div class="w-28 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-20 h-6 bg-gray-200 rounded animate-pulse"></div>
+						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+							<div>
+								<h3 class="text-sm font-medium text-gray-500">CPU Usage</h3>
+								<p class="mt-1 text-lg font-semibold" id="cpuUsage">{ spider.Cpu }</p>
 							</div>
-							<div class="space-y-2">
-								<div class="w-36 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-16 h-6 bg-gray-200 rounded animate-pulse"></div>
+							<div>
+								<h3 class="text-sm font-medium text-gray-500">Memory Usage</h3>
+								<p class="mt-1 text-lg font-semibold" id="memoryUsage">{ spider.Mem }</p>
 							</div>
-							<div class="space-y-2">
-								<div class="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-12 h-6 bg-gray-200 rounded animate-pulse"></div>
+							<div>
+								<h3 class="text-sm font-medium text-gray-500">PID</h3>
+								<p class="mt-1 text-lg font-semibold" id="memoryUsage">{ utils.IntToString(spider.PID) }</p>
 							</div>
-							<div class="space-y-2">
-								<div class="w-28 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-16 h-6 bg-gray-200 rounded animate-pulse"></div>
-							</div>
-							<div class="space-y-2">
-								<div class="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-20 h-6 bg-gray-200 rounded animate-pulse"></div>
-							</div>
-							<div class="space-y-2">
-								<div class="w-16 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-8 h-6 bg-gray-200 rounded animate-pulse"></div>
+							<div>
+								<h3 class="text-sm font-medium text-gray-500">Node Name</h3>
+								<p class="mt-1 text-lg font-semibold" id="networkIO">{ spider.NodeName }</p>
 							</div>
 						</div>
 					</div>
@@ -80,187 +86,108 @@ templ Main(title string) {
 								</span>
 							</span>
 						</div>
-						<div hx-get="?action=http-status" hx-trigger="load" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
-							<div class="bg-gray-100 p-4 rounded-lg space-y-2">
-								<div class="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-16 h-6 bg-gray-200 rounded animate-pulse"></div>
-							</div>
-							<div class="bg-gray-100 p-4 rounded-lg space-y-2">
-								<div class="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-12 h-6 bg-gray-200 rounded animate-pulse"></div>
-							</div>
-							<div class="bg-gray-100 p-4 rounded-lg space-y-2">
-								<div class="w-28 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-12 h-6 bg-gray-200 rounded animate-pulse"></div>
-							</div>
-							<div class="bg-gray-100 p-4 rounded-lg space-y-2">
-								<div class="w-28 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-12 h-6 bg-gray-200 rounded animate-pulse"></div>
-							</div>
+						<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
+							for _, code := range statusCodes {
+								switch code.BaseGroup {
+									case "1xx":
+										<div class="bg-green-100 p-4 rounded-lg">
+											<h3 class="text-sm font-medium text-green-800">{ utils.IntToString(code.Code) }</h3>
+											<p class="mt-1 text-2xl font-semibold text-green-600">{ utils.IntToString(code.Count) }</p>
+										</div>
+									case "2xx":
+										<div class="bg-green-100 p-4 rounded-lg">
+											<h3 class="text-sm font-medium text-green-800">{ utils.IntToString(code.Code) }</h3>
+											<p class="mt-1 text-2xl font-semibold text-green-600">{ utils.IntToString(code.Count) }</p>
+										</div>
+									case "3xx":
+										<div class="bg-yellow-100 p-4 rounded-lg">
+											<h3 class="text-sm font-medium text-yellow-800">{ utils.IntToString(code.Code) }</h3>
+											<p class="mt-1 text-2xl font-semibold text-yellow-600">{ utils.IntToString(code.Count) }</p>
+										</div>
+									case "4xx":
+										<div class="bg-red-100 p-4 rounded-lg">
+											<h3 class="text-sm font-medium text-red-800">{ utils.IntToString(code.Code) }</h3>
+											<p class="mt-1 text-2xl font-semibold text-red-600">{ utils.IntToString(code.Count) }</p>
+										</div>
+									case "5xx":
+										<div class="bg-purple-100 p-4 rounded-lg">
+											<h3 class="text-sm font-medium text-purple-800">{ utils.IntToString(code.Code) }</h3>
+											<p class="mt-1 text-2xl font-semibold text-purple-600">{ utils.IntToString(code.Count) }</p>
+										</div>
+									default:
+										<div class="bg-orange-100 p-4 rounded-lg">
+											<h3 class="text-sm font-medium text-orange-800">{ utils.IntToString(code.Code) }</h3>
+											<p class="mt-1 text-2xl font-semibold text-orange-600">{ utils.IntToString(code.Count) }</p>
+										</div>
+								}
+							}
 						</div>
 					</div>
 					<div class="bg-white shadow-md rounded-lg p-6 mb-6">
 						<div class="flex justify-between items-center mb-4">
-							<h2 class="text-xl font-semibold">Logs (Last 40 lines)</h2>
-							<button hx-get="?action=spider-logs" hx-target="#logs-container" class="px-3 py-1 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+							<h2 class="text-xl font-semibold">Logs (Last 100 lines)</h2>
+							<button class="px-3 py-1 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
 								<i class="ri-refresh-line mr-2"></i> Refresh Logs
 							</button>
 						</div>
-						<div hx-get="?action=spider-logs" hx-trigger="load" id="logs-container" class="bg-black text-green-400 p-4 ">
-							<div class="space-y-2">
-								<div class="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-3/4 h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
-								<div class="w-5/6 h-4 bg-gray-200 rounded animate-pulse"></div>
-							</div>
+						<div id="logs-container" class="bg-black text-green-400 p-4 ">
+							<pre id="spiderLogs" class="whitespace-pre-wrap text-sm font-mono h-64 overflow-y-auto">
+								for _, tailLog := range spider.Log {
+									{ tailLog }
+									<br>
+								}
+							</pre>
 						</div>
 					</div>
-					<div hx-get="?action=spider-actions" hx-trigger="load">
+					<div>
 						<div class="flex justify-end space-x-4">
-							<div class="w-[100px] h-10 bg-gray-200 rounded animate-pulse"></div>
+							if spider.Status == "Running" {
+								<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden opacity-0 transition-opacity duration-300 z-50">
+									<div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white transform transition-all duration-300 -translate-y-full scale-95 opacity-0 z-50">
+										<div class="mt-3 text-center">
+											<h3 class="text-lg leading-6 font-medium text-gray-900">Confirm Deletion</h3>
+											<div class="mt-2 px-7 py-3">
+												<p class="text-sm text-gray-500">
+													Are you sure you want to stop the spider "<span class="font-medium break-all">{ spider.Id }</span>"? This action cannot be undone.
+												</p>
+											</div>
+											<div class="items-center px-4 py-3">
+												<button onClick={ hideDeletionModal() } id="confirmDelete" hx-delete="" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 transition duration-300">
+													Yes, stop the spider
+												</button>
+												<button onClick={ hideDeletionModal() } id="cancelDelete" class="mt-3 px-4 py-2 bg-white text-gray-700 text-base font-medium rounded-md w-full shadow-sm border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition duration-300">
+													Cancel
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="flex justify-end space-x-4">
+									<button onclick={ showDeletionModal() } id="stopButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+										Stop Spider
+									</button>
+								</div>
+							}
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 		<script>
-		document.addEventListener('htmx:afterSettle', function () {
+			document.addEventListener('DOMContentLoaded', function () {
             	const logsContainer = document.getElementById('spiderLogs');
 				if (logsContainer) {
 					logsContainer.scrollTop = logsContainer.scrollHeight;
 				}
 			})
+			document.body.addEventListener('htmx:beforeRequest', function(event) {
+				if (event.target.id === "confirmDelete") {
+					stopButton = document.getElementById("stopButton")
+					stopButton.disabled = true
+					stopButton.textContent = 'Stoping...';
+				}
+			})
 		</script>
-	}
-}
-
-templ SpiderActionsUI(project, jobID string) {
-	<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden opacity-0 transition-opacity duration-300 z-50">
-		<div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white transform transition-all duration-300 -translate-y-full scale-95 opacity-0 z-50">
-			<div class="mt-3 text-center">
-				<h3 class="text-lg leading-6 font-medium text-gray-900">Confirm Deletion</h3>
-				<div class="mt-2 px-7 py-3">
-					<p class="text-sm text-gray-500">
-						Are you sure you want to stop the spider "<span class="font-medium break-all">{project}_{jobID}</span>"? This action cannot be undone.
-					</p>
-				</div>
-				<div class="items-center px-4 py-3">
-					<button onClick={ hideDeletionModal() } id="confirmDelete" hx-delete="" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 transition duration-300">
-						Yes, stop the spider
-					</button>
-					<button onClick={ hideDeletionModal() } id="cancelDelete" class="mt-3 px-4 py-2 bg-white text-gray-700 text-base font-medium rounded-md w-full shadow-sm border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition duration-300">
-						Cancel
-					</button>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="flex justify-end space-x-4">
-		<button onclick={ showDeletionModal() } id="stopButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
-			Stop Spider
-		</button>
-	</div>
-}
-
-templ SpiderNameUI(name string) {
-	<span>{ name }</span>
-}
-
-templ PerformanceMatricsUI(spider *types.SpiderDetail) {
-	<div>
-		<h3 class="text-sm font-medium text-gray-500">CPU Usage</h3>
-		<p class="mt-1 text-lg font-semibold" id="cpuUsage">{ spider.Cpu }</p>
-	</div>
-	<div>
-		<h3 class="text-sm font-medium text-gray-500">Memory Usage</h3>
-		<p class="mt-1 text-lg font-semibold" id="memoryUsage">{ utils.ConvertFileSize(spider.Mem) }</p>
-	</div>
-	<div>
-		<h3 class="text-sm font-medium text-gray-500">PID</h3>
-		<p class="mt-1 text-lg font-semibold" id="memoryUsage">{ utils.IntToString(spider.PID) }</p>
-	</div>
-	<div>
-		<h3 class="text-sm font-medium text-gray-500">Node Name</h3>
-		<p class="mt-1 text-lg font-semibold" id="networkIO">{ spider.NodeName }</p>
-	</div>
-}
-
-templ SpiderLogsUI(spider *types.SpiderDetail) {
-	<pre id="spiderLogs" class="whitespace-pre-wrap text-sm font-mono h-64 overflow-y-auto">
-		for _, tailLog := range spider.Log {
-			{ tailLog }
-		}
-	</pre>
-}
-
-templ SpiderStatusUI(spider *types.SpiderDetail) {
-	<div>
-		<h2 class="text-sm font-medium text-gray-500">Status</h2>
-		<p class="mt-1 text-xl font-semibold text-green-600" id="spiderStatus">{ spider.Status }</p>
-	</div>
-	<div>
-		<h2 class="text-sm font-medium text-gray-500">Start Time</h2>
-		<p class="mt-1 text-xl font-semibold" id="startTime">{ spider.StartTime }</p>
-	</div>
-	<div>
-		<h2 class="text-sm font-medium text-gray-500">End Time</h2>
-		<p class="mt-1 text-xl font-semibold" id="runtime">{ spider.EndTime }</p>
-	</div>
-	<div>
-		<div class="flex">
-			<h2 class="text-sm font-medium text-gray-500">Items Scraped</h2>
-			<span class="relative inline-block ml-2">
-				<input type="checkbox" id="tooltip-toggle-status-code" class="tooltip-toggle-status-code sr-only peer"/>
-				<label for="tooltip-toggle-status-code" class="group cursor-help">
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-500">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"></path>
-					</svg>
-				</label>
-				<span class="tooltip-content absolute z-10 top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 p-2 bg-black text-white text-sm rounded opacity-0 transition-opacity duration-300 invisible group-hover:opacity-100 group-hover:visible peer-checked:opacity-100 peer-checked:visible">
-					Items scraped/crawled are the saved data exported to the desired output destination.
-					<span class="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-8 border-transparent border-b-black"></span>
-				</span>
-			</span>
-		</div>
-		<p class="mt-1 text-xl font-semibold" id="itemsScraped">{ utils.IntToString(spider.CrawledCount) }</p>
-	</div>
-}
-
-templ HttpStatusUI(spider []*types.StatusCode) {
-	for _, code := range spider {
-		switch code.BaseGroup {
-			case "1xx":
-				<div class="bg-green-100 p-4 rounded-lg">
-					<h3 class="text-sm font-medium text-green-800">{ utils.IntToString(code.Code) }</h3>
-					<p class="mt-1 text-2xl font-semibold text-green-600">{ utils.IntToString(code.Count) }</p>
-				</div>
-			case "2xx":
-				<div class="bg-green-100 p-4 rounded-lg">
-					<h3 class="text-sm font-medium text-green-800">{ utils.IntToString(code.Code) }</h3>
-					<p class="mt-1 text-2xl font-semibold text-green-600">{ utils.IntToString(code.Count) }</p>
-				</div>
-			case "3xx":
-				<div class="bg-yellow-100 p-4 rounded-lg">
-					<h3 class="text-sm font-medium text-yellow-800">{ utils.IntToString(code.Code) }</h3>
-					<p class="mt-1 text-2xl font-semibold text-yellow-600">{ utils.IntToString(code.Count) }</p>
-				</div>
-			case "4xx":
-				<div class="bg-red-100 p-4 rounded-lg">
-					<h3 class="text-sm font-medium text-red-800">{ utils.IntToString(code.Code) }</h3>
-					<p class="mt-1 text-2xl font-semibold text-red-600">{ utils.IntToString(code.Count) }</p>
-				</div>
-			case "5xx":
-				<div class="bg-purple-100 p-4 rounded-lg">
-					<h3 class="text-sm font-medium text-purple-800">{ utils.IntToString(code.Code) }</h3>
-					<p class="mt-1 text-2xl font-semibold text-purple-600">{ utils.IntToString(code.Count) }</p>
-				</div>
-			default:
-				<div class="bg-orange-100 p-4 rounded-lg">
-					<h3 class="text-sm font-medium text-orange-800">{ utils.IntToString(code.Code) }</h3>
-					<p class="mt-1 text-2xl font-semibold text-orange-600">{ utils.IntToString(code.Count) }</p>
-				</div>
-		}
 	}
 }
 

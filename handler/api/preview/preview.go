@@ -34,8 +34,6 @@ func POST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(string(body))
 	configHandler.TestRun[id] = body
-
 	fmt.Fprintf(w, string(body))
 }

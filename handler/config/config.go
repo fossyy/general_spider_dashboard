@@ -1,23 +1,21 @@
 package config
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"general_spider_controll_panel/app"
-	deployHandler "general_spider_controll_panel/handler/deploy"
 	"general_spider_controll_panel/types/models"
 	"general_spider_controll_panel/utils"
 	configView "general_spider_controll_panel/view/config"
 	"github.com/google/uuid"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 )
-
-var scrapydURL = utils.Getenv("SCRAPYD_URL")
-var spider = "general_engine"
 
 var (
 	TestRun = make(map[string][]byte)
@@ -32,7 +30,8 @@ func GET(w http.ResponseWriter, r *http.Request) {
 func POST(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		fmt.Println(err)
+		app.Server.Logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -52,15 +51,35 @@ func POST(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("hx-request") == "true" {
 		switch r.URL.Query().Get("action") {
 		case "test-config":
-			jobID := utils.GetMD5Hash(jsonData)
-			go deployHandler.RunSpider(scrapydURL, parse.Host, spider, map[string]string{
-				"preview":        "yes",
-				"preview_config": base64.StdEncoding.EncodeToString([]byte(jsonData)),
-				"jobid":          jobID,
-			})
-			fmt.Println("Hash:", jobID)
+			jobID := fmt.Sprintf("preview_%s", utils.GetMD5Hash(jsonData))
+			proxies, err := app.Server.Database.GetProxies()
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			preview_proxies, err := json.Marshal([]string{fmt.Sprintf("%s://%s:%s", strings.TrimSpace(proxies[0].Protocol), strings.TrimSpace(proxies[0].Address), strings.TrimSpace(proxies[0].Port))})
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			go func() {
+				_, err := app.Server.Scrapyd.RunSpider(parse.Host, map[string]string{
+					"preview":         "yes",
+					"preview_config":  base64.StdEncoding.EncodeToString([]byte(jsonData)),
+					"preview_proxies": base64.StdEncoding.EncodeToString(preview_proxies),
+					"jobid":           jobID,
+				})
+				if err != nil {
+					mu.Lock()
+					errorJson, _ := json.Marshal(map[string]string{
+						"error": err.Error(),
+					})
+					TestRun[jobID] = errorJson
+					mu.Unlock()
+				}
+			}()
 
-			data, err := waitForResult(jobID, 100, 1*time.Second)
+			data, err := waitForResult(r.Context(), jobID, 100, 1*time.Second)
 			if err != nil {
 				http.Error(w, "<pre>Cannot get the data in time, please try again</pre>", http.StatusRequestTimeout)
 				return
@@ -96,8 +115,14 @@ func POST(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func waitForResult(jobID string, maxRetry int, delay time.Duration) ([]byte, error) {
+func waitForResult(ctx context.Context, jobID string, maxRetry int, delay time.Duration) ([]byte, error) {
 	for retry := 0; retry < maxRetry; retry++ {
+		select {
+		case <-ctx.Done():
+			app.Server.Logger.Println(fmt.Errorf("operation canceled: %w", ctx.Err()))
+			return nil, fmt.Errorf("operation canceled: %w", ctx.Err())
+		default:
+		}
 		mu.Lock()
 		data, ok := TestRun[jobID]
 		mu.Unlock()
@@ -105,6 +130,7 @@ func waitForResult(jobID string, maxRetry int, delay time.Duration) ([]byte, err
 		if ok {
 			return data, nil
 		}
+		app.Server.Logger.Println("Waiting for job", jobID, "to finish")
 		time.Sleep(delay)
 	}
 	return nil, fmt.Errorf("timed out waiting for result")

@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"general_spider_controll_panel/app"
-	"general_spider_controll_panel/types"
+	"general_spider_controll_panel/types/models"
 	"general_spider_controll_panel/utils"
 	deployView "general_spider_controll_panel/view/deploy"
-	"io"
+	"github.com/go-co-op/gocron/v2"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,17 +16,40 @@ import (
 
 var scrapydURL = utils.Getenv("SCRAPYD_URL")
 var spider = "general_engine"
+var version = "1.0"
 
 func GET(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("hx-request") == "true" {
 		switch r.URL.Query().Get("action") {
 		case "get-proxies":
-			proxies, err := app.Server.Database.GetProxies()
+			proxies, err := app.Server.Database.GetActiveProxies()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			deployView.ProxiesUI(proxies).Render(r.Context(), w)
+			project, err := app.Server.Scrapyd.GetAllProjects()
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			var finalProxy []*models.Proxy
+			for _, proxy := range proxies {
+				if proxy.Usage != "" {
+					proxySpider, err := app.Server.Scrapyd.GetSpider(proxy.Usage, project)
+					if err != nil {
+						continue
+					}
+					if proxySpider == nil {
+						finalProxy = append(finalProxy, proxy)
+					}
+					if proxySpider != nil && proxySpider.Status != "Running" {
+						finalProxy = append(finalProxy, proxy)
+					}
+				} else {
+					finalProxy = append(finalProxy, proxy)
+				}
+			}
+			deployView.ProxiesUI(finalProxy).Render(r.Context(), w)
 			return
 		case "get-configs":
 			domain := r.URL.Query().Get("domainSelect")
@@ -70,11 +93,29 @@ func POST(w http.ResponseWriter, r *http.Request) {
 	kafkaBrokers := r.Form.Get("kafkaBrokers")
 	kafkaTopic := r.Form.Get("kafkaTopic")
 	proxies := r.Form.Get("selectedProxies")
-	proxiesJSON, _ := json.Marshal(strings.Split(proxies, ","))
+
+	proxyList := strings.Split(proxies, ",")
+	for i, proxy := range proxyList {
+		proxyList[i] = strings.ReplaceAll(proxy, " ", "")
+	}
+	proxiesJSON, _ := json.Marshal(proxyList)
+
+	jobid := fmt.Sprintf("%s_%s", outputDest, utils.GenerateRandomString(32))
+	for _, proxy := range proxyList {
+		parsed, _ := url.Parse(proxy)
+
+		err := app.Server.Database.UpdateProxyAsUsed(strings.Split(parsed.Host, ":")[0], jobid)
+		if err != nil {
+			app.Server.Logger.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
 	additionalArgs := map[string]string{
 		"config_id":  configID,
 		"output_dst": outputDest,
 		"proxies":    base64.StdEncoding.EncodeToString(proxiesJSON),
+		"jobid":      jobid,
 	}
 	if kafkaBrokers != "" {
 		additionalArgs["kafka_server"] = kafkaBrokers
@@ -83,47 +124,106 @@ func POST(w http.ResponseWriter, r *http.Request) {
 		additionalArgs["kafka_topic"] = kafkaTopic
 	}
 	project := r.Form.Get("domainSelect")
-	_, err = RunSpider(scrapydURL, project, spider, additionalArgs)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+
+	switch r.Form.Get("deploymentTime") {
+	case "now":
+		_, err = app.Server.Scrapyd.RunSpider(project, additionalArgs)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Hx-Redirect", fmt.Sprintf("/spiders/%s", project))
+		w.WriteHeader(http.StatusCreated)
+	default:
+		cronExpression := r.Form.Get("cronExpression")
+		if cronExpression == "" {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		jobTask := gocron.NewTask(func(project string, additionalArgs map[string]string) {
+			scrapydSpider, err := app.Server.Scrapyd.GetSpider(jobid, []string{project})
+			if err != nil {
+				err := app.Server.Database.CreateTimeline(&models.Timeline{
+					Title:   "Job Failed",
+					Message: "Skipping deployment, Error while deploying, Error : " + err.Error(),
+					Context: jobid,
+					Status:  models.Failed,
+				})
+				if err != nil {
+					app.Server.Logger.Println("Error creating timeline: " + err.Error())
+					return
+				}
+				return
+			}
+			if scrapydSpider == nil || scrapydSpider.Status != "Running" {
+				_, err = app.Server.Scrapyd.RunSpider(project, additionalArgs)
+				if err != nil {
+					err := app.Server.Database.CreateTimeline(&models.Timeline{
+						Title:   "Job Failed",
+						Message: "Skipping deployment, Error while deploying, Error : " + err.Error(),
+						Context: jobid,
+						Status:  models.Failed,
+					})
+					if err != nil {
+						app.Server.Logger.Println("Error creating timeline: " + err.Error())
+						return
+					}
+					return
+				}
+				err := app.Server.Database.CreateTimeline(&models.Timeline{
+					Title:   "Job Started",
+					Message: "Cron job execution completed successfully",
+					Context: jobid,
+					Status:  models.Success,
+				})
+				if err != nil {
+					app.Server.Logger.Println("Error creating timeline: " + err.Error())
+					return
+				}
+				return
+			} else {
+				err := app.Server.Database.CreateTimeline(&models.Timeline{
+					Title:   "Job Failed",
+					Message: "Skipping deployment, last deployment still running",
+					Context: jobid,
+					Status:  models.Failed,
+				})
+				if err != nil {
+					app.Server.Logger.Println("Error creating timeline: " + err.Error())
+					return
+				}
+				return
+			}
+		}, project, additionalArgs)
+		jobType := gocron.CronJob(cronExpression, false)
+		job, err := app.Server.Cron.NewJob(jobType, jobTask, gocron.WithTags(project))
+		if err != nil {
+			app.Server.Logger.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		additionalArgsMarshal, err := json.Marshal(additionalArgs)
+		if err != nil {
+			app.Server.Logger.Println(err)
+			return
+		}
+		err = app.Server.Database.CreateCron(&models.Schedule{
+			ID:             job.ID(),
+			Schedule:       cronExpression,
+			Project:        project,
+			Spider:         spider,
+			ConfigID:       configID,
+			OutputDST:      outputDest,
+			ProxyAddresses: proxiesJSON,
+			JobID:          jobid,
+			AdditionalArgs: additionalArgsMarshal,
+		})
+		if err != nil {
+			app.Server.Logger.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Hx-Redirect", fmt.Sprintf("/spiders/%s?type=schedule", project))
+		w.WriteHeader(http.StatusCreated)
 	}
-	fmt.Println("proxies : ", base64.StdEncoding.EncodeToString(proxiesJSON))
-	w.Header().Set("Hx-Redirect", fmt.Sprintf("/spiders/%s", project))
-	w.WriteHeader(http.StatusCreated)
-}
-
-func RunSpider(scrapydURL, project, spider string, additionalArgs map[string]string) (string, error) {
-	data := url.Values{}
-	data.Set("project", project)
-	data.Add("spider", spider)
-
-	for key, value := range additionalArgs {
-		data.Add(key, value)
-	}
-
-	url := fmt.Sprintf("%s/schedule.json", scrapydURL)
-	resp, err := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
-	if err != nil {
-		return "", fmt.Errorf("failed to send HTTP request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("run failed with status: %s", resp.Status)
-	}
-
-	var scrapydResp types.ScrapydResponse
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	fmt.Println(string(body))
-	err = json.Unmarshal(body, &scrapydResp)
-	if err != nil {
-		return "", fmt.Errorf("failed to unmarshal JSON response: %w", err)
-	}
-
-	return scrapydResp.Jobid, nil
 }

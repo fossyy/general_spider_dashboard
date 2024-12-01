@@ -13,7 +13,7 @@ templ Base(title string) {
 			<meta name="author" content="Filekeeper"/>
 			<link href="/public/output.css" rel="stylesheet"/>
 			<title>{ title }</title>
-			<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+			<script src="https://unpkg.com/htmx.org@2.0.3"></script>
 			<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet"/>
 		</head>
 		<body>
@@ -81,14 +81,22 @@ templ Base(title string) {
 			}
 
 			document.body.addEventListener("htmx:afterRequest", function (event) {
-			if (!event.detail.xhr.responseText && event.detail.xhr.status === 0) {
-				showToast("No response from the server. Please try again later.", 5000, 'error');
-				return;
-			}
-
-			if (event.detail.xhr.status !== 200) {
-				showToast(event.detail.xhr.responseText || "Request failed", 5000, 'error');
-			}
+				if (event.detail.xhr.getResponseHeader('Content-Type')?.includes('application/json')) {
+					const jsonResponse = JSON.parse(event.detail.xhr.responseText);
+					showToast(
+						jsonResponse.message, 
+						jsonResponse.timeout !== 0 ? jsonResponse.timeout : 5000, 
+						jsonResponse.type 
+							? jsonResponse.type 
+							: event.detail.failed 
+								? "error" 
+								: "other"
+					);
+				}
+				if (!event.detail.xhr.responseText && event.detail.xhr.status === 0) {
+					showToast("No response from the server. Please try again later.", 5000, 'error');
+					return;
+				}
 		});
 		</script>
 		</body>

@@ -1,21 +1,20 @@
 package handlerSpiderDetails
 
 import (
-	"bufio"
 	"bytes"
-	"encoding/json"
+	"errors"
 	"fmt"
+	"general_spider_controll_panel/app"
 	"general_spider_controll_panel/types"
 	"general_spider_controll_panel/utils"
 	spiderDetailsView "general_spider_controll_panel/view/spider/details"
-	"github.com/shirou/gopsutil/v3/process"
-	"io"
+	"gorm.io/gorm"
 	"net/http"
 	"net/url"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var scrapydURL = utils.Getenv("SCRAPYD_URL")
@@ -88,7 +87,7 @@ var statusCode = map[int]string{
 func GET(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	project := r.PathValue("project")
-	detail, err := getSpiderDetail(id, project)
+	detail, err := GetSpiderDetail(id, project)
 	if err != nil && detail != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -97,106 +96,101 @@ func GET(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	if r.Header.Get("hx-request") == "true" {
-		switch r.URL.Query().Get("action") {
-		case "http-status":
-			codes, err := countStatusCodesFromLog(project, id, statusCode)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Println(err)
-				return
-			}
-			spiderDetailsView.HttpStatusUI(codes).Render(r.Context(), w)
-			return
-		case "performance-metrics":
-			spiderDetailsView.PerformanceMatricsUI(detail).Render(r.Context(), w)
-			return
-		case "spider-status":
-			spiderDetailsView.SpiderStatusUI(detail).Render(r.Context(), w)
-			return
-		case "spider-name":
-			spiderDetailsView.SpiderNameUI(fmt.Sprintf("%s_%s", detail.Name, detail.Id)).Render(r.Context(), w)
-			return
-		case "spider-logs":
-			spiderDetailsView.SpiderLogsUI(detail).Render(r.Context(), w)
-			return
-		case "spider-actions":
-			if detail.Status == "Running" {
-				spiderDetailsView.SpiderActionsUI(detail.Name, detail.Id).Render(r.Context(), w)
-				return
-			}
-			w.Write([]byte(""))
-			return
-		default:
-			http.NotFound(w, r)
-			return
-		}
+	log, err := countStatusCodesFromLog(detail.Log, statusCode)
+	if err != nil {
+		app.Server.Logger.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	spiderDetailsView.Main("Spider page").Render(r.Context(), w)
+	spiderDetailsView.Main("Spider page", detail, log).Render(r.Context(), w)
 	return
 }
 
 func DELETE(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	project := r.PathValue("project")
-	detail, err := getSpiderDetail(id, project)
+	detail, err := GetSpiderDetail(id, project)
 	if err != nil && detail != nil {
+		app.Server.Logger.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if detail == nil {
+		app.Server.Logger.Println(err.Error())
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	err = stopSpider(project, id)
 	if err != nil {
+		app.Server.Logger.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+	max_retry := 30
+	retry := 0
+	for {
+		if retry >= max_retry {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		stopSpiderStatus, _ := app.Server.Scrapyd.GetSpider(id, []string{project})
+		if stopSpiderStatus.Status != "Finished" {
+			time.Sleep(1 * time.Second)
+			retry += 1
+			continue
+		} else {
+			proxies, err := app.Server.Database.GetProxiesByJobID(id)
+			if err != nil {
+				if errors.Is(err, gorm.ErrEmptySlice) {
+					w.Header().Set("HX-Redirect", fmt.Sprintf("/spiders/%s", project))
+					return
+				}
+				app.Server.Logger.Println(err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			for _, proxy := range proxies {
+				app.Server.Tools.CheckProxy(proxy)
+			}
+			break
+		}
 	}
 	w.Header().Set("HX-Refresh", "true")
 	return
 }
 
-func getSpiderDetail(jobID, project string) (*types.SpiderDetail, error) {
-	spiders, err := getSpider(jobID, scrapydURL, project)
+func GetSpiderDetail(jobID, project string) (*types.SpiderDetail, error) {
+	spiders, err := app.Server.Scrapyd.GetSpider(jobID, []string{project})
 	if err != nil {
-		fmt.Println("error 1 ", err.Error())
+		app.Server.Logger.Println(err)
 		return nil, err
 	}
 
 	if spiders == nil {
-		fmt.Println("error 2 ", err.Error())
 		return nil, fmt.Errorf("spider not found with JobID: %s", jobID)
 	}
 
-	pages, err := countCrawledPagesFromLog(project, jobID)
+	tailLog, err := app.Server.Scrapyd.FetchScrapydLog(project, jobID, 100)
 	if err != nil {
-		fmt.Println("error 3 ", err.Error())
-		return nil, err
+		app.Server.Logger.Println(err)
+		tailLog = []string{"Null"}
 	}
 
-	tailLog, err := readLastLinesFromLog(project, jobID, 40)
+	pages, err := countCrawledPagesFromLog(tailLog)
 	if err != nil {
-		fmt.Println("error 4 ", err.Error())
-		tailLog = []string{"Null"}
+		app.Server.Logger.Println(err)
+		return nil, err
 	}
 
 	var spiderDetail types.SpiderDetail
 	if spiders.Status == "Running" {
-		var cpuPercent float64
-		var memInfoRSS uint64
-		if spiders.Pid < 100 {
-			cpuPercent = float64(0)
-			memInfoRSS = uint64(0)
-		} else {
-			proc, _ := process.NewProcess(int32(spiders.Pid))
-			cpuPercent, _ = proc.CPUPercent()
-			memInfo, _ := proc.MemoryInfo()
-			memInfoRSS = memInfo.RSS
+		usage, err := app.Server.Scrapyd.GetSpiderUsage(project, jobID)
+		if err != nil {
+			app.Server.Logger.Println(err)
+			return nil, err
 		}
-
-		spiderDetail.Cpu = fmt.Sprintf("%.2f%%", cpuPercent)
-		spiderDetail.Mem = memInfoRSS
+		spiderDetail.Cpu = fmt.Sprintf("%.2f%%", usage.Usage.Cpu)
+		spiderDetail.Mem = fmt.Sprintf("%.2f MB", usage.Usage.Memory)
 		spiderDetail.NodeName = spiders.NodeName
 		spiderDetail.CrawledCount = pages
 		spiderDetail.PID = spiders.Pid
@@ -206,9 +200,10 @@ func getSpiderDetail(jobID, project string) (*types.SpiderDetail, error) {
 		spiderDetail.Id = spiders.Id
 		spiderDetail.StartTime = spiders.StartTime
 		spiderDetail.EndTime = spiders.EndTime
+		spiderDetail.Project = project
 	} else {
 		spiderDetail.Cpu = "0"
-		spiderDetail.Mem = 0
+		spiderDetail.Mem = "0"
 		spiderDetail.NodeName = spiders.NodeName
 		spiderDetail.CrawledCount = pages
 		spiderDetail.PID = 0
@@ -218,156 +213,42 @@ func getSpiderDetail(jobID, project string) (*types.SpiderDetail, error) {
 		spiderDetail.Id = spiders.Id
 		spiderDetail.StartTime = spiders.StartTime
 		spiderDetail.EndTime = spiders.EndTime
+		spiderDetail.Project = project
 	}
 	return &spiderDetail, nil
 }
 
-func getSpider(jobID, scrapydURL, project string) (*types.Spider, error) {
-	url := fmt.Sprintf("%s/listjobs.json?project=%s", scrapydURL, project)
+//func readLastLinesFromLog(project, jobID string, numLines int) ([]string, error) {
+//	logContent, err := app.Server.Scrapyd.FetchScrapydLog(project, jobID)
+//	if err != nil {
+//		return nil, fmt.Errorf("failed to fetch log: %w", err)
+//	}
+//
+//	lines := make([]string, 0, numLines)
+//	var currentLine string
+//	lineCount := 0
+//	reader := bufio.NewReader(strings.NewReader(logContent))
+//	for {
+//		currentLine, err = reader.ReadString('\n')
+//		if err != nil {
+//			break
+//		}
+//
+//		if lineCount >= numLines {
+//			lines = lines[1:]
+//		}
+//		lines = append(lines, currentLine)
+//		lineCount++
+//	}
+//	return lines, nil
+//}
 
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send HTTP request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get running spiders, status: %s", resp.Status)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	fmt.Println("body : ", string(body))
-	var scrapydResp types.ScrapydResponseGetingSpiders
-	err = json.Unmarshal(body, &scrapydResp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON response: %w", err)
-	}
-	var data *types.Spider
-	for _, runningSpider := range scrapydResp.Running {
-		if runningSpider.Id == jobID {
-			data = &types.Spider{
-				Id:        runningSpider.Id,
-				Spider:    runningSpider.Spider,
-				Pid:       runningSpider.Pid,
-				ItemsUrl:  runningSpider.ItemsUrl,
-				LogUrl:    runningSpider.LogUrl,
-				Project:   runningSpider.Project,
-				StartTime: runningSpider.StartTime,
-				EndTime:   "Still Running",
-				Status:    "Running",
-				NodeName:  scrapydResp.NodeName,
-			}
-		}
-	}
-
-	if data == nil {
-		for _, pendingSpider := range scrapydResp.Pending {
-			if pendingSpider.Id == jobID {
-				data = &types.Spider{
-					Id:        pendingSpider.Id,
-					Spider:    pendingSpider.Spider,
-					Pid:       0,
-					ItemsUrl:  "",
-					LogUrl:    "",
-					Project:   pendingSpider.Project,
-					StartTime: "Pending",
-					EndTime:   "Not Running Yet",
-					Status:    "Pending",
-					NodeName:  scrapydResp.NodeName,
-				}
-			}
-		}
-	}
-
-	if data == nil {
-		for _, finishedSpider := range scrapydResp.Finished {
-			if finishedSpider.Id == jobID {
-				data = &types.Spider{
-					Id:        finishedSpider.Id,
-					Spider:    finishedSpider.Spider,
-					Pid:       0,
-					ItemsUrl:  finishedSpider.ItemsUrl,
-					LogUrl:    finishedSpider.LogUrl,
-					Project:   finishedSpider.Project,
-					StartTime: finishedSpider.StartTime,
-					EndTime:   finishedSpider.EndTime,
-					Status:    "Finished",
-					NodeName:  scrapydResp.NodeName,
-				}
-			}
-		}
-	}
-	return data, nil
-}
-
-func fetchScrapydLog(project, jobID string) (string, error) {
-	logFilePath := fmt.Sprintf("logs/%s/%s/log.log", project, jobID)
-	_, err := os.Stat(logFilePath)
-	if os.IsNotExist(err) {
-		return "Logs path is not valid \n", nil
-	}
-	file, err := os.Open(logFilePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to open log file: %w", err)
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		return "", fmt.Errorf("failed to read log file: %w", err)
-	}
-
-	return string(content), nil
-}
-
-func readLastLinesFromLog(project, jobID string, numLines int) ([]string, error) {
-	logContent, err := fetchScrapydLog(project, jobID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch log: %w", err)
-	}
-
-	lines := make([]string, 0, numLines)
-	var currentLine string
-	lineCount := 0
-	reader := bufio.NewReader(strings.NewReader(logContent))
-	for {
-		currentLine, err = reader.ReadString('\n')
-		if err != nil {
-			break
-		}
-
-		if lineCount >= numLines {
-			lines = lines[1:]
-		}
-		lines = append(lines, currentLine)
-		lineCount++
-	}
-	return lines, nil
-}
-
-func countCrawledPagesFromLog(project, jobID string) (uint64, error) {
-	logContent, err := fetchScrapydLog(project, jobID)
-	if err != nil {
-		return 0, fmt.Errorf("failed to fetch log: %w", err)
-	}
+func countCrawledPagesFromLog(logContent []string) (uint64, error) {
 	re := regexp.MustCompile(`\|\s*(\d+)`)
 
 	var crawlCount uint64 = 0
 
-	reader := bufio.NewReader(strings.NewReader(logContent))
-	for {
-		line, err := reader.ReadString('\n')
-		if err != nil && err.Error() != "EOF" {
-			return crawlCount, err
-		}
-		if len(line) == 0 {
-			break
-		}
-
+	for _, line := range logContent {
 		line = strings.TrimSpace(line)
 		matches := re.FindStringSubmatch(line)
 		if len(matches) > 1 {
@@ -377,33 +258,16 @@ func countCrawledPagesFromLog(project, jobID string) (uint64, error) {
 			}
 			crawlCount = uint64(crawlCountInt)
 		}
-
-		if err != nil {
-			break
-		}
 	}
 
 	return crawlCount, nil
 }
 
-func countStatusCodesFromLog(project, jobID string, statusCodeMap map[int]string) ([]*types.StatusCode, error) {
-	logContent, err := fetchScrapydLog(project, jobID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch log: %w", err)
-	}
+func countStatusCodesFromLog(logContent []string, statusCodeMap map[int]string) ([]*types.StatusCode, error) {
 	re := regexp.MustCompile(`\[\w+]\s*\|\s*(\{.*})$`)
 	var statusCounts []types.StatusCode
 
-	reader := bufio.NewReader(strings.NewReader(logContent))
-	for {
-		line, err := reader.ReadString('\n')
-		if err != nil && err.Error() != "EOF" {
-			return nil, err
-		}
-		if len(line) == 0 {
-			break
-		}
-
+	for _, line := range logContent {
 		line = strings.TrimSpace(line)
 		matches := re.FindStringSubmatch(line)
 		if len(matches) > 1 {
@@ -444,10 +308,6 @@ func countStatusCodesFromLog(project, jobID string, statusCodeMap map[int]string
 					}
 				}
 			}
-		}
-
-		if err != nil {
-			break
 		}
 	}
 

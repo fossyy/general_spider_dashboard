@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"general_spider_controll_panel/types"
-	"github.com/joho/godotenv"
 	mathRand "math/rand"
 	"net/http"
 	"os"
@@ -16,6 +15,8 @@ import (
 	"sync"
 	"time"
 	"unicode"
+
+	"github.com/joho/godotenv"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -113,9 +114,6 @@ func ConvertTIme(timestampMillis int64) string {
 
 	now := time.Now()
 	duration := now.Sub(t)
-	fmt.Println("time now : ", now)
-	fmt.Println("time compare : ", t)
-	fmt.Println("time diff : ", duration)
 
 	if duration < time.Minute {
 		return fmt.Sprintf("%d seconds ago", int(duration.Seconds()))
@@ -130,6 +128,42 @@ func ConvertTIme(timestampMillis int64) string {
 	} else {
 		return fmt.Sprintf("%d years ago", int(duration.Hours()/(24*365)))
 	}
+}
+
+func TimeUntil(ms int64) string {
+	if ms < 0 {
+		return "Time has already passed!"
+	}
+
+	seconds := ms / 1000
+
+	months := seconds / (30 * 24 * 60 * 60)
+	seconds %= 30 * 24 * 60 * 60
+	days := seconds / (24 * 60 * 60)
+	seconds %= 24 * 60 * 60
+	hours := seconds / (60 * 60)
+	seconds %= 60 * 60
+	minutes := seconds / 60
+	seconds %= 60
+
+	result := ""
+	if months > 0 {
+		result += fmt.Sprintf("%d months ", months)
+	}
+	if days > 0 {
+		result += fmt.Sprintf("%d days ", days)
+	}
+	if hours > 0 {
+		result += fmt.Sprintf("%d hours ", hours)
+	}
+	if minutes > 0 {
+		result += fmt.Sprintf("%d minutes ", minutes)
+	}
+	if seconds > 0 || result == "" {
+		result += fmt.Sprintf("%d seconds", seconds)
+	}
+
+	return "in " + result
 }
 
 func Getenv(key string) string {
@@ -157,7 +191,7 @@ func Getenv(key string) string {
 }
 
 func GenerateRandomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 	seededRand := mathRand.New(mathRand.NewSource(time.Now().UnixNano() + int64(mathRand.Intn(9999))))
 	var result strings.Builder
 	for i := 0; i < length; i++ {
@@ -245,4 +279,8 @@ func ParseUserAgent(userAgent string) (map[string]string, map[string]string) {
 
 func IntToString[T types.Number](number T) string {
 	return fmt.Sprintf("%d", number)
+}
+
+func FloatToString[T types.Float](number T) string {
+	return fmt.Sprintf("%.2f", number)
 }

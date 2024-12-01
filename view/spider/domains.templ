@@ -121,6 +121,63 @@ templ Main(title string) {
 				</div>
 			</div>
 		</div>
+		<script>
+		function parseStartTime(text) {
+			let days = 0, hours = 0, minutes = 0, seconds = 0;
+
+			const daysMatch = text.match(/(\d+)\s*days?/);
+			const hoursMatch = text.match(/(\d+)\s*hours?/);
+			const minutesMatch = text.match(/(\d+)\s*minutes?/);
+			const secondsMatch = text.match(/(\d+)\s*seconds?/);
+
+			if (daysMatch) days = parseInt(daysMatch[1]);
+			if (hoursMatch) hours = parseInt(hoursMatch[1]);
+			if (minutesMatch) minutes = parseInt(minutesMatch[1]);
+			if (secondsMatch) seconds = parseInt(secondsMatch[1]);
+
+			return days * 86400 + hours * 3600 + minutes * 60 + seconds;
+		}
+
+		function updateCountups() {
+			const countupElements = document.querySelectorAll('.countup');
+			countupElements.forEach((element) => {
+				const startingText = element.textContent;
+					console.log(startingText)
+				if (startingText === "Last crawled: Now") {
+					return
+				} else if (startingText === "Last crawled: Never been run before :)") {
+					return
+				}
+				let startTime = parseStartTime(startingText);
+				function updateElementCountup() {
+				startTime++;
+				let days = Math.floor(startTime / 86400);
+				let hours = Math.floor((startTime % 86400) / 3600);
+				let minutes = Math.floor((startTime % 3600) / 60);
+				let seconds = startTime % 60;
+				let formattedTime = '';
+				if (days > 0) {
+					formattedTime += `${days} days `;
+				}
+				if (hours > 0) {
+					formattedTime += `${hours} hours `;
+				}
+				if (minutes > 0 || hours > 0 || days > 0) {
+					formattedTime += `${minutes} minutes `;
+				}
+				formattedTime += `${seconds} seconds`;
+				element.textContent = `Last crawled: ${formattedTime.trim()} ago`;
+				}
+				setInterval(updateElementCountup, 1000);
+				updateElementCountup();
+			});
+		}
+
+		document.body.addEventListener('htmx:afterSwap', function(event) {
+			updateCountups();
+		});
+
+		</script>
 	}
 }
 
@@ -163,10 +220,11 @@ templ GetDomains(domains []*types.DomainStats) {
 					</div>
 				</div>
 				<div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
-					<p class="text-sm text-gray-500 mb-2">Last crawled: {domain.LastCrawled}</p>
+					<p class="text-sm text-gray-500 mb-2 countup">Last crawled: {domain.LastCrawled}</p>
 					<p class="text-sm text-gray-500 mb-2">{utils.IntToString(domain.ActiveSpider)} Active Spiders</p>
 					<p class="text-sm text-gray-500 mb-2">{utils.IntToString(domain.PendingSpider)} Pending Spiders</p>
 					<p class="text-sm text-gray-500 mb-2">{utils.IntToString(domain.FinishedSpider)} Finished Spiders</p>
+					<p class="text-sm text-gray-500 mb-2">{utils.IntToString(domain.ScheduledSpider)} Scheduled Spiders</p>
 				</div>
 			</li>
 		}

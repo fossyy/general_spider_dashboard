@@ -53,8 +53,13 @@ templ Main(title string, domains []string) {
 									Select Proxies
 								</label>
 								<div class="relative">
-									<select hx-get="?action=get-proxies" hx-trigger="load" id="proxies-list" required multiple class="block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></select>
-									<p class="text-xs text-gray-500">Hold Ctrl (Windows) or Command (Mac) to select multiple proxies</p>
+									<div id="proxy-list-continer" class="space-y-2" hx-get="?action=get-proxies" hx-trigger="load">
+										<div class="h-32 w-full bg-gray-200 rounded animate-pulse"></div>
+										<div class="p-4 bg-yellow-100 rounded-md space-y-2">
+											<div class="h-4 w-56 bg-yellow-200 rounded animate-pulse"></div>
+											<div class="h-3 w-72 bg-yellow-200 rounded animate-pulse"></div>
+										</div>
+									</div>
 								</div>
 								<div id="selectedProxies" class="mt-2 flex flex-wrap gap-2"></div>
 								<input type="hidden" id="selectedProxiesInput" name="selectedProxies" value=""/>
@@ -82,11 +87,11 @@ templ Main(title string, domains []string) {
 								<fieldset class="mt-4">
 									<div class="space-y-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-10">
 										<div class="flex items-center">
-											<input id="run-now" name="deploymentTime" type="radio" checked class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+											<input id="run-now" name="deploymentTime" type="radio" value="now" checked class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
 											<label for="run-now" class="ml-3 block text-sm font-medium text-gray-700">Run Now</label>
 										</div>
 										<div class="flex items-center">
-											<input id="schedule" name="deploymentTime" type="radio" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+											<input id="schedule" name="deploymentTime" type="radio" value="schedule" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
 											<label for="schedule" class="ml-3 block text-sm font-medium text-gray-700">Schedule Run</label>
 										</div>
 									</div>
@@ -325,11 +330,10 @@ templ Main(title string, domains []string) {
             updateCronExpression();
         });
 		document.body.addEventListener('htmx:afterSwap', function(event) {
-			if (event.target.id === "proxies-list") {
+			if (event.target.id === "proxy-list-continer") {
 			const proxiesSelect = document.getElementById('proxies-list');
             const selectedProxiesDiv = document.getElementById('selectedProxies');
             const selectedProxiesInput = document.getElementById('selectedProxiesInput');
-
             function updateSelectedProxies() {
                 selectedProxiesDiv.innerHTML = '';
                 const selectedValues = [];
@@ -364,8 +368,27 @@ templ Main(title string, domains []string) {
 }
 
 templ ProxiesUI(proxies []*models.Proxy) {
-	for _, proxy := range proxies {
-		<option value={ fmt.Sprintf("%s://%s:%s", proxy.Protocol, proxy.Address, proxy.Port) }>{ fmt.Sprintf("%s:%s", proxy.Address, proxy.Port) }</option>
+	if len(proxies) == 0 {
+		<select id="proxies-list" required multiple class="block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></select>
+		<div>
+			<div class="p-4 rounded-md bg-yellow-100 text-yellow-800">
+				<p class="text-sm font-medium">No proxies available at the moment.</p>
+				<p class="mt-1 text-xs">
+					Please check the
+					<a href="/proxies" class="underline font-medium hover:text-yellow-900">
+						proxy status page
+					</a>
+					for available proxy information.
+				</p>
+			</div>
+		</div>
+	} else {
+		<select id="proxies-list" required multiple class="block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+			for _, proxy := range proxies {
+				<option value={ fmt.Sprintf("%s://%s:%s", proxy.Protocol, proxy.Address, proxy.Port) }>{ fmt.Sprintf("%s:%s", proxy.Address, proxy.Port) }</option>
+			}
+		</select>
+		<p class="text-xs text-gray-500">Hold Ctrl (Windows) or Command (Mac) to select multiple proxies</p>
 	}
 }
 

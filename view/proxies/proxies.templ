@@ -1,21 +1,21 @@
 package proxiesView
 
 import (
-	"general_spider_controll_panel/types/models"
-	"general_spider_controll_panel/view/layout"
 	"fmt"
+	"general_spider_controll_panel/types/models"
 	"general_spider_controll_panel/utils"
+	"general_spider_controll_panel/view/layout"
 )
 
 templ Main(title string) {
 	@layout.Base(title) {
 		<div class="flex h-screen">
 			@layout.LeftNavbar("Proxies")
-			<div class="container mx-auto px-4 py-8">
+			<div class="flex-grow p-4 lg:p-8 overflow-auto">
 				<h1 class="text-2xl font-bold mb-6">Advanced Proxy Management</h1>
-				<div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+				<div class="bg-white shadow-md rounded px-4 lg:px-8 pt-6 pb-8 mb-4">
 					<h2 class="text-xl font-semibold mb-4">Add New Proxy</h2>
-					<form class="flex gap-2 mb-6" hx-post="" hx-target="#proxies" hx-swap="afterend">
+					<form class="flex flex-col lg:flex-row gap-2 mb-6" hx-post="?action=add-proxy" hx-target="#proxies" hx-swap="afterend">
 						<input
 							type="text"
 							required
@@ -39,18 +39,22 @@ templ Main(title string) {
 							<span class="sr-only">Add Proxy</span>
 						</button>
 					</form>
-					<div class="flex justify-between items-center mb-4">
-						<h2 class="text-xl font-semibold">Current Proxies</h2>
+					<div class="flex flex-col lg:flex-row justify-between items-center mb-4">
+						<h2 class="text-xl font-semibold mb-2 lg:mb-0">Current Proxies</h2>
 						<button
-                            hx-post="?action=test-proxies"
-                            hx-target="#proxies"
-                            id="testProxies"
+							hx-post="?action=test-proxies"
+							hx-target="#proxies"
+							id="testProxies"
 							class="rounded-md bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
 						>
 							Test All Proxies
 						</button>
 					</div>
-					<div class="mb-4 flex space-x-4">
+					<div class="mb-4 flex flex-wrap gap-4">
+						<div class="flex items-center">
+							<span class="h-3 w-3 rounded-full bg-blue-500 mr-2"></span>
+							<span class="text-sm text-gray-600">Used</span>
+						</div>
 						<div class="flex items-center">
 							<span class="h-3 w-3 rounded-full bg-green-500 mr-2"></span>
 							<span class="text-sm text-gray-600">Online</span>
@@ -92,7 +96,7 @@ templ Main(title string) {
 				</div>
 			</div>
 		</div>
-        <script>
+		<script>
         document.body.addEventListener('htmx:beforeRequest', function(event) {
 		if (event.target && event.target.id == "testProxies") {
 			document.getElementById('testProxies').disabled = true;
@@ -155,15 +159,34 @@ templ Proxies(proxies []*models.Proxy) {
 
 templ Proxy(proxy *models.Proxy) {
 	switch proxy.Status {
+		case models.Used:
+			<li id={ fmt.Sprintf("proxy-%d", proxy.ID) } class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-md">
+				<div class="flex items-center space-x-2">
+					<span class="h-3 w-3 rounded-full bg-blue-500"></span>
+					<span>{ proxy.Address + ":" + proxy.Port }</span>
+					<span class="text-sm text-gray-500">({ proxy.Protocol })</span>
+					<span class="text-sm text-gray-500">({ proxy.Usage })</span>
+				</div>
+				<div class="flex items-center space-x-2">
+					<button class="text-blue-500 hover:text-blue-700 focus:outline-none" hx-post={ "?action=test-proxy&id=" + utils.IntToString(proxy.ID) } hx-target={ fmt.Sprintf("#proxy-%d", proxy.ID) } hx-swap="outerHTML">
+						<i class="ri-refresh-line"></i>
+						<span class="sr-only">Check Proxy</span>
+					</button>
+					<button class="text-red-500 hover:text-red-700 focus:outline-none" onClick={ showDeletionModal(proxy.Address, utils.IntToString(proxy.ID)) }>
+						<i class="ri-delete-bin-line"></i>
+						<span class="sr-only">Remove Proxy</span>
+					</button>
+				</div>
+			</li>
 		case models.Online:
 			<li id={ fmt.Sprintf("proxy-%d", proxy.ID) } class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-md">
 				<div class="flex items-center space-x-2">
 					<span class="h-3 w-3 rounded-full bg-green-500"></span>
-					<span>{ proxy.Address }</span>
+					<span>{ proxy.Address + ":" + proxy.Port }</span>
 					<span class="text-sm text-gray-500">({ proxy.Protocol })</span>
 				</div>
 				<div class="flex items-center space-x-2">
-					<button class="text-blue-500 hover:text-blue-700 focus:outline-none" hx-post={"?action=test-proxy&id=" + utils.IntToString(proxy.ID)} hx-target={fmt.Sprintf("#proxy-%d", proxy.ID)} hx-swap="outerHTML">
+					<button class="text-blue-500 hover:text-blue-700 focus:outline-none" hx-post={ "?action=test-proxy&id=" + utils.IntToString(proxy.ID) } hx-target={ fmt.Sprintf("#proxy-%d", proxy.ID) } hx-swap="outerHTML">
 						<i class="ri-refresh-line"></i>
 						<span class="sr-only">Check Proxy</span>
 					</button>
@@ -177,11 +200,11 @@ templ Proxy(proxy *models.Proxy) {
 			<li id={ fmt.Sprintf("proxy-%d", proxy.ID) } class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-md">
 				<div class="flex items-center space-x-2">
 					<span class="h-3 w-3 rounded-full bg-red-500"></span>
-					<span>{ proxy.Address }</span>
+					<span>{ proxy.Address + ":" + proxy.Port }</span>
 					<span class="text-sm text-gray-500">({ proxy.Protocol })</span>
 				</div>
 				<div class="flex items-center space-x-2">
-					<button class="text-blue-500 hover:text-blue-700 focus:outline-none" hx-post={"?action=test-proxy&id=" + utils.IntToString(proxy.ID)} hx-target={fmt.Sprintf("#proxy-%d", proxy.ID)} hx-swap="outerHTML">
+					<button class="text-blue-500 hover:text-blue-700 focus:outline-none" hx-post={ "?action=test-proxy&id=" + utils.IntToString(proxy.ID) } hx-target={ fmt.Sprintf("#proxy-%d", proxy.ID) } hx-swap="outerHTML">
 						<i class="ri-refresh-line"></i>
 						<span class="sr-only">Check Proxy</span>
 					</button>
@@ -195,7 +218,7 @@ templ Proxy(proxy *models.Proxy) {
 			<li id={ fmt.Sprintf("proxy-%d", proxy.ID) } class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-md">
 				<div class="flex items-center space-x-2">
 					<span class="h-3 w-3 rounded-full bg-yellow-500"></span>
-					<span>{ proxy.Address }</span>
+					<span>{ proxy.Address + ":" + proxy.Port }</span>
 					<span class="text-sm text-gray-500">({ proxy.Protocol })</span>
 				</div>
 				<div class="flex items-center space-x-2">
@@ -213,10 +236,10 @@ templ Proxy(proxy *models.Proxy) {
 			<li id={ fmt.Sprintf("proxy-%d", proxy.ID) } class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-md">
 				<div class="flex items-center space-x-2">
 					<span class="h-3 w-3 rounded-full bg-gray-500"></span>
-					<span>{ proxy.Address }</span>
+					<span>{ proxy.Address + ":" + proxy.Port }</span>
 					<span class="text-sm text-gray-500">({ proxy.Protocol })</span>
 				</div>
-				<div class="flex items-center space-x-2" hx-post={"?action=test-proxy&id=" + utils.IntToString(proxy.ID)} hx-target={fmt.Sprintf("#proxy-%d", proxy.ID)} hx-swap="outerHTML">
+				<div class="flex items-center space-x-2" hx-post={ "?action=test-proxy&id=" + utils.IntToString(proxy.ID) } hx-target={ fmt.Sprintf("#proxy-%d", proxy.ID) } hx-swap="outerHTML">
 					<button class="text-blue-500 hover:text-blue-700 focus:outline-none">
 						<i class="ri-refresh-line"></i>
 						<span class="sr-only">Check Proxy</span>

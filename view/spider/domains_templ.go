@@ -48,7 +48,7 @@ func Main(title string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex h-screen\">")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 1)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -56,7 +56,7 @@ func Main(title string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex-1 overflow-auto\"><div class=\"p-8\"><div class=\"flex justify-between items-center mb-6\"><h1 class=\"text-3xl font-bold\">Spiders</h1><button id=\"refreshButton\" class=\"bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center\"><i class=\"ri-refresh-line mr-2\"></i> Refresh</button></div><div class=\"bg-white shadow-md rounded-lg\"><div class=\"px-4 py-3 border-b border-gray-200\"><h2 class=\"text-lg font-semibold text-gray-800\">Domain List</h2><div class=\"flex justify-end\"><a href=\"/config\" id=\"addDomainButton\" class=\"bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center transition-colors duration-300\"><svg class=\"w-5 h-5 mr-2\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 6v6m0 0v6m0-6h6m-6 0H6\"></path></svg> Add Domain</a></div></div><ul hx-get=\"?action=get-domains\" hx-trigger=\"load\" class=\"divide-y divide-gray-200 overflow-auto\"><li class=\"bg-white overflow-hidden mb-4 rounded-lg shadow-sm border border-gray-200 animate-pulse\"><div class=\"p-4\"><div class=\"flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4\"><div class=\"flex items-center gap-3 w-full sm:w-auto\"><div class=\"w-5 h-5 bg-gray-200 rounded-full\"></div><div class=\"flex flex-col sm:flex-row sm:items-center gap-2 min-w-0 flex-grow\"><div class=\"h-5 bg-gray-200 rounded w-40 sm:w-64\"></div><div class=\"h-5 w-16 bg-gray-200 rounded\"></div></div></div><div class=\"h-9 w-full sm:w-28 bg-gray-200 rounded-md\"></div></div></div><div class=\"px-4 py-3 bg-gray-50 border-t border-gray-100\"><div class=\"h-4 bg-gray-200 rounded w-40 mb-2\"></div><div class=\"flex flex-col sm:flex-row sm:items-center justify-between text-sm gap-2\"><div class=\"h-4 bg-gray-200 rounded w-32\"></div><div class=\"h-4 bg-gray-200 rounded w-24\"></div></div></div></li><li class=\"bg-white overflow-hidden mb-4 rounded-lg shadow-sm border border-gray-200 animate-pulse\"><div class=\"p-4\"><div class=\"flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4\"><div class=\"flex items-center gap-3 w-full sm:w-auto\"><div class=\"w-5 h-5 bg-gray-200 rounded-full\"></div><div class=\"flex flex-col sm:flex-row sm:items-center gap-2 min-w-0 flex-grow\"><div class=\"h-5 bg-gray-200 rounded w-40 sm:w-64\"></div><div class=\"h-5 w-16 bg-gray-200 rounded\"></div></div></div><div class=\"h-9 w-full sm:w-28 bg-gray-200 rounded-md\"></div></div></div><div class=\"px-4 py-3 bg-gray-50 border-t border-gray-100\"><div class=\"h-4 bg-gray-200 rounded w-40 mb-2\"></div><div class=\"flex flex-col sm:flex-row sm:items-center justify-between text-sm gap-2\"><div class=\"h-4 bg-gray-200 rounded w-32\"></div><div class=\"h-4 bg-gray-200 rounded w-24\"></div></div></div></li><li class=\"bg-white overflow-hidden mb-4 rounded-lg shadow-sm border border-gray-200 animate-pulse\"><div class=\"p-4\"><div class=\"flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4\"><div class=\"flex items-center gap-3 w-full sm:w-auto\"><div class=\"w-5 h-5 bg-gray-200 rounded-full\"></div><div class=\"flex flex-col sm:flex-row sm:items-center gap-2 min-w-0 flex-grow\"><div class=\"h-5 bg-gray-200 rounded w-40 sm:w-64\"></div><div class=\"h-5 w-16 bg-gray-200 rounded\"></div></div></div><div class=\"h-9 w-full sm:w-28 bg-gray-200 rounded-md\"></div></div></div><div class=\"px-4 py-3 bg-gray-50 border-t border-gray-100\"><div class=\"h-4 bg-gray-200 rounded w-40 mb-2\"></div><div class=\"flex flex-col sm:flex-row sm:items-center justify-between text-sm gap-2\"><div class=\"h-4 bg-gray-200 rounded w-32\"></div><div class=\"h-4 bg-gray-200 rounded w-24\"></div></div></div></li><li class=\"bg-white overflow-hidden mb-4 rounded-lg shadow-sm border border-gray-200 animate-pulse\"><div class=\"p-4\"><div class=\"flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4\"><div class=\"flex items-center gap-3 w-full sm:w-auto\"><div class=\"w-5 h-5 bg-gray-200 rounded-full\"></div><div class=\"flex flex-col sm:flex-row sm:items-center gap-2 min-w-0 flex-grow\"><div class=\"h-5 bg-gray-200 rounded w-40 sm:w-64\"></div><div class=\"h-5 w-16 bg-gray-200 rounded\"></div></div></div><div class=\"h-9 w-full sm:w-28 bg-gray-200 rounded-md\"></div></div></div><div class=\"px-4 py-3 bg-gray-50 border-t border-gray-100\"><div class=\"h-4 bg-gray-200 rounded w-40 mb-2\"></div><div class=\"flex flex-col sm:flex-row sm:items-center justify-between text-sm gap-2\"><div class=\"h-4 bg-gray-200 rounded w-32\"></div><div class=\"h-4 bg-gray-200 rounded w-24\"></div></div></div></li></ul></div></div></div></div>")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 2)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -92,13 +92,13 @@ func GetDomains(domains []*types.DomainStats) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(domains) == 0 {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"noDomains\" class=\"px-6 py-12 text-center\"><svg class=\"mx-auto h-12 w-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg><h3 class=\"mt-2 text-sm font-medium text-gray-900\">No domains added yet</h3><p class=\"mt-1 text-sm text-gray-500\">Get started by adding your first domain.</p><div class=\"mt-6\"><a href=\"/config\" class=\"inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500\"><svg class=\"-ml-1 mr-2 h-5 w-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 6v6m0 0v6m0-6h6m-6 0H6\"></path></svg> Add Your First Domain</a></div></div>")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 3)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
 			for _, domain := range domains {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<li class=\"bg-white overflow-hidden\"><div class=\"p-4\"><div class=\"flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4\"><div class=\"flex items-center gap-3 w-full sm:w-auto\"><svg class=\"w-5 h-5 text-gray-400 flex-shrink-0\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg><div class=\"flex flex-col sm:flex-row sm:items-center gap-2 min-w-0\"><a href=\"")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 4)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -107,20 +107,20 @@ func GetDomains(domains []*types.DomainStats) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"text-gray-900 font-medium truncate\">")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 5)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(domain.Domain)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 154, Col: 134}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 211, Col: 134}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></div></div><a href=\"")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 6)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -129,59 +129,72 @@ func GetDomains(domains []*types.DomainStats) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full sm:w-auto\">View Details</a></div></div><div class=\"px-4 py-3 bg-gray-50 border-t border-gray-100\"><p class=\"text-sm text-gray-500 mb-2\">Last crawled: ")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 7)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(domain.LastCrawled)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 166, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 223, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p><p class=\"text-sm text-gray-500 mb-2\">")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 8)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(utils.IntToString(domain.ActiveSpider))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 167, Col: 82}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 224, Col: 82}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" Active Spiders</p><p class=\"text-sm text-gray-500 mb-2\">")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 9)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(utils.IntToString(domain.PendingSpider))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 168, Col: 83}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 225, Col: 83}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" Pending Spiders</p><p class=\"text-sm text-gray-500 mb-2\">")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 10)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(utils.IntToString(domain.FinishedSpider))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 169, Col: 84}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 226, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" Finished Spiders</p></div></li>")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 11)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var11 string
+				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(utils.IntToString(domain.ScheduledSpider))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/spider/domains.templ`, Line: 227, Col: 85}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 12)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

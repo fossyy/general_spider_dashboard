@@ -1,15 +1,12 @@
 package proxiesHandler
 
 import (
-	"fmt"
 	"general_spider_controll_panel/app"
 	"general_spider_controll_panel/types/models"
 	proxiesView "general_spider_controll_panel/view/proxies"
 	"net/http"
-	"net/url"
 	"strings"
 	"sync"
-	"time"
 )
 
 func GET(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +44,7 @@ func POST(w http.ResponseWriter, r *http.Request) {
 				wg.Add(1)
 				go func(proxy *models.Proxy) {
 					defer wg.Done()
-					CheckProxy(proxy)
+					app.Server.Tools.CheckProxy(proxy)
 				}(proxy)
 			}
 
@@ -61,36 +58,35 @@ func POST(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			go CheckProxy(proxy)
+			go app.Server.Tools.CheckProxy(proxy)
 			proxy.Status = models.Checking
 			proxiesView.Proxy(proxy).Render(r.Context(), w)
 			return
+		case "add-proxy":
+			r.ParseForm()
+			proxyAddress := r.Form.Get("proxyAddr")
+			proxyProto := r.Form.Get("proxyProto")
+
+			splitAddr := strings.Split(proxyAddress, ":")
+			proxy := &models.Proxy{
+				Address:  splitAddr[0],
+				Port:     splitAddr[1],
+				Protocol: proxyProto,
+			}
+			proxy, err := app.Server.Database.CreateProxy(proxy)
+			if err != nil {
+				app.Server.Logger.Println(err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			go app.Server.Tools.CheckProxy(proxy)
+			proxiesView.Proxy(proxy).Render(r.Context(), w)
+			return
 		default:
-			fmt.Println("anjir")
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 	}
-	r.ParseForm()
-	proxyAddress := r.Form.Get("proxyAddr")
-	proxyProto := r.Form.Get("proxyProto")
-
-	spliteAddr := strings.Split(proxyAddress, ":")
-	proxy := &models.Proxy{
-		Address:  spliteAddr[0],
-		Port:     spliteAddr[1],
-		Protocol: proxyProto,
-	}
-	proxy, err := app.Server.Database.CreateProxy(proxy)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println(spliteAddr)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	go CheckProxy(proxy)
-	proxiesView.Proxy(proxy).Render(r.Context(), w)
-	return
 }
 
 func DELETE(w http.ResponseWriter, r *http.Request) {
@@ -102,39 +98,4 @@ func DELETE(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	return
-}
-
-func CheckProxy(proxy *models.Proxy) {
-	err := app.Server.Database.UpdateProxyStatus(proxy.Address, models.Checking)
-	rawProxy := fmt.Sprintf("%s://%s:%s", proxy.Protocol, proxy.Address, proxy.Port)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println("Error while checking Proxy:", err)
-		return
-	}
-	proxyUrl, _ := url.Parse(rawProxy)
-	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxyUrl),
-		},
-		Timeout: 30 * time.Second,
-	}
-	resp, err := client.Get("https://example.com")
-	if err != nil || resp.StatusCode != http.StatusOK {
-		err := app.Server.Database.UpdateProxyStatus(proxy.Address, models.Offline)
-		if err != nil {
-			fmt.Println("Error while checking Proxy 2:", err)
-			return
-		}
-		fmt.Println("Error while checking Proxy 3:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	err = app.Server.Database.UpdateProxyStatus(proxy.Address, models.Online)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Printf("Proxy %s:%s is online.\n", proxy.Address, &proxy.Port)
 }

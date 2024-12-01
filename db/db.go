@@ -1,12 +1,16 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"general_spider_controll_panel/types"
 	"general_spider_controll_panel/types/models"
+	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
+	"net/url"
+	"strings"
 )
 
 type postgresDB struct {
@@ -63,6 +67,16 @@ func NewPostgresDB(username, password, host, port, dbName string, mode SSLMode) 
 		panic(err.Error())
 		return nil
 	}
+	err = DB.AutoMigrate(&models.Schedule{})
+	if err != nil {
+		panic(err.Error())
+		return nil
+	}
+	err = DB.AutoMigrate(&models.Timeline{})
+	if err != nil {
+		panic(err.Error())
+		return nil
+	}
 	return &postgresDB{DB}
 }
 
@@ -100,7 +114,7 @@ func (db *postgresDB) GetConfigsIDByDomain(domain string) ([]string, error) {
 
 func (db *postgresDB) GetConfigNameAndIDByDomain(domain string) ([]*types.ConfigDetail, error) {
 	var configs []models.Config
-	if err := db.Where("domain = ?", domain).Find(&configs).Error; err != nil {
+	if err := db.Where("domain = ?", domain).Order("created_at DESC").Find(&configs).Error; err != nil {
 		return nil, err
 	}
 	data := make([]*types.ConfigDetail, 0, len(configs))
@@ -129,6 +143,14 @@ func (db *postgresDB) GetProxies() ([]*models.Proxy, error) {
 	return proxies, nil
 }
 
+func (db *postgresDB) GetActiveProxies() ([]*models.Proxy, error) {
+	var proxies []*models.Proxy
+	if err := db.Where("status = ?", models.Online).Find(&proxies).Error; err != nil {
+		return nil, err
+	}
+	return proxies, nil
+}
+
 func (db *postgresDB) GetProxyByID(id string) (*models.Proxy, error) {
 	var proxy models.Proxy
 	if err := db.Where("id = ?", id).First(&proxy).Error; err != nil {
@@ -137,12 +159,20 @@ func (db *postgresDB) GetProxyByID(id string) (*models.Proxy, error) {
 	return &proxy, nil
 }
 
+func (db *postgresDB) GetProxiesByJobID(id string) ([]*models.Proxy, error) {
+	var proxies []*models.Proxy
+	if err := db.Where("usage = ?", id).Find(&proxies).Error; err != nil {
+		return nil, err
+	}
+	return proxies, nil
+}
+
 func (db *postgresDB) CreateProxy(proxy *models.Proxy) (*models.Proxy, error) {
+	proxy.Address = strings.ReplaceAll(proxy.Address, " ", "")
 	return proxy, db.Create(proxy).Error
 }
 
 func (db *postgresDB) UpdateProxyStatus(addr string, status models.ProxyStatus) error {
-	fmt.Println("got : ", addr, "and :", status)
 	var proxy models.Proxy
 	if err := db.Where("address = ?", addr).First(&proxy).Error; err != nil {
 		return err
@@ -151,10 +181,162 @@ func (db *postgresDB) UpdateProxyStatus(addr string, status models.ProxyStatus) 
 	return db.Save(&proxy).Error
 }
 
+func (db *postgresDB) UpdateProxyAsUsed(addr string, jobid string) error {
+	var proxy models.Proxy
+	if err := db.Where("address = ?", addr).First(&proxy).Error; err != nil {
+		return err
+	}
+	proxy.Status = models.Used
+	proxy.Usage = jobid
+	return db.Save(&proxy).Error
+}
+
+func (db *postgresDB) RemoveProxyUsedStatus(addr string) error {
+	var proxy models.Proxy
+	if err := db.Where("address = ?", addr).First(&proxy).Error; err != nil {
+		return err
+	}
+	proxy.Usage = ""
+	proxy.Status = models.Unchecked
+	return db.Save(&proxy).Error
+}
+
+func (db *postgresDB) RemoveProxyUsedStatusByJobID(jobid string) error {
+	var proxies []*models.Proxy
+	if err := db.Where("usage = ? ", jobid).Find(&proxies).Error; err != nil {
+		return err
+	}
+	for _, proxy := range proxies {
+		proxy.Usage = ""
+		proxy.Status = models.Online
+	}
+	return db.Save(&proxies).Error
+}
+
 func (db *postgresDB) RemoveProxy(addr string) error {
 	var proxy models.Proxy
 	if err := db.Where("address = ?", addr).First(&proxy).Error; err != nil {
 		return err
 	}
 	return db.Delete(&proxy).Error
+}
+
+func (db *postgresDB) CreateCron(cron *models.Schedule) error {
+	var proxies []*models.Proxy
+
+	var proxyAddresses []string
+	if err := json.Unmarshal(cron.ProxyAddresses, &proxyAddresses); err != nil {
+		return fmt.Errorf("failed to unmarshal ProxyAddresses: %w", err)
+	}
+	for _, address := range proxyAddresses {
+		var proxy *models.Proxy
+		parse, err := url.Parse(address)
+		if err != nil {
+			return err
+		}
+		if err := db.Where("address = ?", strings.Split(parse.Host, ":")[0]).First(&proxy).Error; err != nil {
+			return fmt.Errorf("proxy with address %s not found", strings.Split(parse.Host, ":")[0])
+		}
+		proxies = append(proxies, proxy)
+	}
+
+	cron.Proxies = proxies
+
+	return db.Create(cron).Error
+}
+
+func (db *postgresDB) GetCrons() ([]*models.Schedule, error) {
+	var crons []*models.Schedule
+	if err := db.Preload("Proxies").Find(&crons).Error; err != nil {
+		return nil, err
+	}
+	return crons, nil
+}
+
+func (db *postgresDB) GetCronByID(id string) (*models.Schedule, error) {
+	var cron models.Schedule
+	if err := db.Preload("Proxies").Where("id = ?", id).First(&cron).Error; err != nil {
+		return nil, err
+	}
+	return &cron, nil
+}
+
+func (db *postgresDB) ChangeCronID(id string, newID uuid.UUID) error {
+	tx := db.Begin()
+
+	var cron *models.Schedule
+	if err := tx.Preload("Proxies").Where("id = ?", id).First(&cron).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to find schedule with ID %s: %w", id, err)
+	}
+
+	cron.ID = newID
+
+	if err := tx.Create(&cron).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create new schedule with ID %s: %s", newID, err.Error)
+	}
+
+	if err := tx.Exec("DELETE FROM schedule_proxies WHERE schedule_id = ?", id).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to delete old references from schedule_proxies: %w", err)
+	}
+
+	if err := tx.Where("id = ?", id).Delete(&models.Schedule{}).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to delete old schedule with ID %s: %w", id, err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (db *postgresDB) RemoveScheduleByID(id string) error {
+	tx := db.Begin()
+	var cron *models.Schedule
+	if err := tx.Preload("Proxies").Where("id = ?", id).First(&cron).Error; err != nil {
+		return err
+	}
+	if err := tx.Exec("DELETE FROM schedule_proxies WHERE schedule_id = ?", id).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to delete schedule_proxies: %w", err)
+	}
+	if err := tx.Delete(&cron).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
+}
+
+func (db *postgresDB) CountScheduledSpiders(project string) (int64, error) {
+	var count int64
+	if err := db.Table("schedules").Where("project = ?", project).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (db *postgresDB) CreateTimeline(timeline *models.Timeline) error {
+	return db.Create(timeline).Error
+}
+
+func (db *postgresDB) GetTimelineByContext(context string) ([]*models.Timeline, error) {
+	var timeline []*models.Timeline
+	if err := db.Where("context = ?", context).Find(&timeline).Error; err != nil {
+		return nil, err
+	}
+	return timeline, nil
+}
+
+func (db *postgresDB) RemoveTimelineByContext(context string) error {
+	tx := db.Begin()
+	var timeline []*models.Timeline
+	if err := tx.Where("context = ?", context).Delete(&timeline).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }
