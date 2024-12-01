@@ -1,19 +1,31 @@
 package app
 
 import (
-	"bytes"
 	_ "embed"
 	"encoding/json"
-	"fmt"
 	"general_spider_controll_panel/types"
+	"general_spider_controll_panel/types/models"
 	"general_spider_controll_panel/utils"
-	"io"
-	"mime/multipart"
+	"github.com/go-co-op/gocron/v2"
+	"log"
 	"net/http"
+	"sync"
+	"time"
 )
 
-var scrapydURL = utils.Getenv("SCRAPYD_URL")
-var version = "1.0"
+type BackendResponseType string
+
+const (
+	Error   BackendResponseType = "error"
+	Success BackendResponseType = "success"
+	Info    BackendResponseType = "info"
+)
+
+type BackendResponse struct {
+	Message string              `json:"message"`
+	Type    BackendResponseType `json:"type"`
+	Timeout uint                `json:"timeout"`
+}
 
 var Server *App
 
@@ -23,108 +35,162 @@ var egg []byte
 type App struct {
 	http.Server
 	Database types.Database
+	Logger   *log.Logger
+	Scrapyd  *ScrapydStruct
+	Tools    *Tools
+	Cron     gocron.Scheduler
+	Response BackendResponse
 }
 
-type ScrapydProjectsResponse struct {
-	Status   string   `json:"status"`
-	Projects []string `json:"projects"`
-}
-
-func GetAllProjects(scrapydURL string) ([]string, error) {
-	url := fmt.Sprintf("%s/listprojects.json", scrapydURL)
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch projects from Scrapyd: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to fetch projects, status: %s", resp.Status)
+func NewApp(addr string, handler http.Handler, database types.Database, cron gocron.Scheduler, logger *log.Logger) *App {
+	scrapyd := ScrapydStruct{
+		ScrapydURL: utils.Getenv("SCRAPYD_URL"),
+		Version:    "1.0",
+		Spider:     "general_engine",
 	}
 
-	var projectsResponse ScrapydProjectsResponse
-	if err := json.NewDecoder(resp.Body).Decode(&projectsResponse); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+	tools := Tools{
+		scrapyd:  &scrapyd,
+		database: database,
+		logger:   logger,
 	}
 
-	if projectsResponse.Status != "ok" {
-		return nil, fmt.Errorf("unexpected response status: %s", projectsResponse.Status)
-	}
-
-	return projectsResponse.Projects, nil
-}
-
-func UploadEgg(scrapydURL, project, version string) error {
-	var requestBody bytes.Buffer
-	writer := multipart.NewWriter(&requestBody)
-
-	if err := writer.WriteField("project", project); err != nil {
-		return fmt.Errorf("failed to add project field: %w", err)
-	}
-
-	if err := writer.WriteField("version", version); err != nil {
-		return fmt.Errorf("failed to add version field: %w", err)
-	}
-
-	part, err := writer.CreateFormFile("egg", "general.egg")
-	if err != nil {
-		return fmt.Errorf("failed to add egg file field: %w", err)
-	}
-	if _, err := io.Copy(part, bytes.NewReader(egg)); err != nil {
-		return fmt.Errorf("failed to copy egg file data: %w", err)
-	}
-
-	if err := writer.Close(); err != nil {
-		return fmt.Errorf("failed to close multipart writer: %w", err)
-	}
-
-	url := fmt.Sprintf("%s/addversion.json", scrapydURL)
-	req, err := http.NewRequest("POST", url, &requestBody)
-	if err != nil {
-		return fmt.Errorf("failed to create HTTP request: %w", err)
-	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to send HTTP request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("upload failed with status: %s", resp.Status)
-	}
-
-	fmt.Println("Egg uploaded successfully!")
-	return nil
-}
-
-func UploadEggToAllProjects(scrapydURL, version string, database types.Database) error {
-	projects, err := database.GetDomains()
-	if err != nil {
-		return fmt.Errorf("failed to get projects: %w", err)
-	}
-
-	for _, project := range projects {
-		fmt.Printf("Uploading egg to project: %s\n", project)
-		if err := UploadEgg(scrapydURL, project, version); err != nil {
-			fmt.Printf("Failed to upload egg to project %s: %v\n", project, err)
+	go func() {
+		if err := scrapyd.UploadEggToAllProjects(database); err != nil {
+			logger.Fatal("Error: " + err.Error())
 		}
-	}
+	}()
 
-	return nil
-}
+	go cron.Start()
 
-func NewApp(addr string, handler http.Handler, database types.Database) *App {
-	if err := UploadEggToAllProjects(scrapydURL, version, database); err != nil {
-		panic("Error: " + err.Error())
-	}
+	go func() {
+		crons, err := database.GetCrons()
+		if err != nil {
+			logger.Fatal("Error: " + err.Error())
+			return
+		}
+
+		for _, dbCron := range crons {
+			var additionalArgs map[string]string
+			err := json.Unmarshal(dbCron.AdditionalArgs, &additionalArgs)
+			if err != nil {
+				logger.Fatal("Error: " + err.Error())
+				return
+			}
+			jobTask := gocron.NewTask(func(project string, additionalArgs map[string]string) {
+				scrapydSpider, err := scrapyd.GetSpider(dbCron.JobID, []string{project})
+				if err != nil {
+					err := database.CreateTimeline(&models.Timeline{
+						Title:   "Job Failed",
+						Message: "Skipping deployment, Error while deploying, Error : " + err.Error(),
+						Context: dbCron.JobID,
+						Status:  models.Failed,
+					})
+					if err != nil {
+						logger.Println("Error creating timeline: " + err.Error())
+						return
+					}
+					logger.Println(err)
+					return
+				}
+				if scrapydSpider == nil || scrapydSpider.Status != "Running" {
+					_, err = scrapyd.RunSpider(project, additionalArgs)
+					if err != nil {
+						err := database.CreateTimeline(&models.Timeline{
+							Title:   "Job Failed",
+							Message: "Skipping deployment, Error while deploying, Error : " + err.Error(),
+							Context: dbCron.JobID,
+							Status:  models.Failed,
+						})
+						if err != nil {
+							logger.Println("Error creating timeline: " + err.Error())
+							return
+						}
+						logger.Println(err)
+						return
+					}
+					err := database.CreateTimeline(&models.Timeline{
+						Title:   "Job Started",
+						Message: "Cron job execution completed successfully",
+						Context: dbCron.JobID,
+						Status:  models.Success,
+					})
+					if err != nil {
+						logger.Println("Error creating timeline: " + err.Error())
+						return
+					}
+				} else {
+					err := database.CreateTimeline(&models.Timeline{
+						Title:   "Job Failed",
+						Message: "Skipping deployment, last deployment still running",
+						Context: dbCron.JobID,
+						Status:  models.Failed,
+					})
+					if err != nil {
+						logger.Println("Error creating timeline: " + err.Error())
+						return
+					}
+					return
+				}
+			}, dbCron.Project, additionalArgs)
+			jobType := gocron.CronJob(dbCron.Schedule, false)
+			job, err := cron.NewJob(jobType, jobTask, gocron.WithTags(dbCron.Project))
+			logger.Println("Adding cron from db to stack : ", dbCron.ID, dbCron.AdditionalArgs)
+			if err != nil {
+				logger.Fatal("Error: " + err.Error())
+				return
+			}
+			err = database.ChangeCronID(dbCron.ID.String(), job.ID())
+			if err != nil {
+				logger.Fatal("Error: " + err.Error())
+				return
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			proxies, err := database.GetProxies()
+			if err != nil {
+				logger.Fatal("Error: " + err.Error())
+				return
+			}
+			wg := sync.WaitGroup{}
+			for _, proxy := range proxies {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					logger.Println("Checking proxy : ", proxy.Address)
+					tools.CheckProxy(proxy)
+				}()
+			}
+			wg.Wait()
+			time.Sleep(5 * time.Minute)
+		}
+	}()
+
 	return &App{
 		Server: http.Server{
 			Addr:    addr,
 			Handler: handler,
 		},
 		Database: database,
+		Cron:     cron,
+		Logger:   logger,
+		Scrapyd:  &scrapyd,
+		Tools:    &tools,
+		Response: BackendResponse{},
 	}
+}
+
+func (be *BackendResponse) SendMessageToast(w http.ResponseWriter, message *BackendResponse) error {
+	if message.Timeout < 1000 {
+		message.Timeout = 1000
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(message)
+	if err != nil {
+		return err
+	}
+	return nil
 }
