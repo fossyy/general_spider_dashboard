@@ -81,6 +81,14 @@ var navbarItems = []types.NavbarItems{
 		Key: "Proxies",
 		Url: "/proxies",
 	},
+	types.NavbarItems{
+		Key: "Kafka broker",
+		Url: "/kafka/broker",
+	},
+	types.NavbarItems{
+		Key: "Kafka topic",
+		Url: "/kafka/topic",
+	},
 }
 
 func LeftNavbar(active string) templ.Component {
@@ -126,7 +134,7 @@ func LeftNavbar(active string) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(item.Key)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/layout/base.templ`, Line: 156, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/layout/base.templ`, Line: 164, Col: 26}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -153,7 +161,7 @@ func LeftNavbar(active string) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(item.Key)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/layout/base.templ`, Line: 162, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/layout/base.templ`, Line: 170, Col: 26}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {

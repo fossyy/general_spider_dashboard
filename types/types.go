@@ -164,6 +164,7 @@ type Database interface {
 	GetConfigNameAndIDByDomain(domain string) ([]*ConfigDetail, error)
 	GetDomains() ([]string, error)
 	GetConfigs() ([]*models.Config, error)
+	GetDomainsWithSchema() ([]string, error)
 
 	GetProxies() ([]*models.Proxy, error)
 	GetActiveProxies() ([]*models.Proxy, error)
@@ -186,4 +187,13 @@ type Database interface {
 	CreateTimeline(timeline *models.Timeline) error
 	GetTimelineByContext(context string) ([]*models.Timeline, error)
 	RemoveTimelineByContext(context string) error
+
+	GetKafkaBrokers() ([]*models.KafkaBroker, error)
+	GetKafkaBrokersByName(name string) ([]*models.KafkaBroker, error)
+	GetKafkaBrokersById(id string) (*models.KafkaBroker, error)
+	CreateKafkaBroker(kafkaBroker *models.KafkaBroker) error
+
+	GetKafkaTopics() ([]*models.KafkaTopic, error)
+	IsTopicPresent(name string) bool
+	CreateKafkaTopic(kafkaTopic *models.KafkaTopic) error
 }

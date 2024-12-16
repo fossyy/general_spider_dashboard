@@ -23,8 +23,13 @@ var (
 )
 
 func GET(w http.ResponseWriter, r *http.Request) {
-
-	configView.Main("config maker").Render(r.Context(), w)
+	domains, err := app.Server.Database.GetDomainsWithSchema()
+	if err != nil {
+		app.Server.Logger.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	configView.Main("config maker", domains).Render(r.Context(), w)
 }
 
 func POST(w http.ResponseWriter, r *http.Request) {
@@ -51,10 +56,20 @@ func POST(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("hx-request") == "true" {
 		switch r.URL.Query().Get("action") {
 		case "test-config":
+			if parse.Host == "" || parse.Scheme == "" {
+				fmt.Fprintf(w, fmt.Sprintf("<pre>Invalid URL with format of %s://%s:%s, Please check the format and try again.</pre>", strings.TrimSpace(parse.Scheme), strings.TrimSpace(parse.Host), strings.TrimSpace(parse.Port())))
+				w.WriteHeader(http.StatusOK)
+				return
+			}
 			jobID := fmt.Sprintf("preview_%s", utils.GetMD5Hash(jsonData))
-			proxies, err := app.Server.Database.GetProxies()
+			proxies, err := app.Server.Database.GetActiveProxies()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			if len(proxies) == 0 {
+				fmt.Fprintln(w, "<pre>No available proxies. Please add a proxy and try again.</pre>")
 				return
 			}
 			preview_proxies, err := json.Marshal([]string{fmt.Sprintf("%s://%s:%s", strings.TrimSpace(proxies[0].Protocol), strings.TrimSpace(proxies[0].Address), strings.TrimSpace(proxies[0].Port))})
@@ -79,9 +94,9 @@ func POST(w http.ResponseWriter, r *http.Request) {
 				}
 			}()
 
-			data, err := waitForResult(r.Context(), jobID, 100, 1*time.Second)
+			data, err := waitForResult(r.Context(), jobID, 30, 1*time.Second)
 			if err != nil {
-				http.Error(w, "<pre>Cannot get the data in time, please try again</pre>", http.StatusRequestTimeout)
+				fmt.Fprintln(w, "<pre>Cannot get the data in time, please try again</pre>")
 				return
 			}
 			formattedData, err := formatJSON(data)
@@ -94,12 +109,14 @@ func POST(w http.ResponseWriter, r *http.Request) {
 			}
 
 			err = app.Server.Database.CreateConfig(&models.Config{
-				ID:          configID,
-				Domain:      parse.Host,
-				Name:        name,
-				Type:        configType,
-				Description: description,
-				Data:        []byte(jsonData),
+				ID:               configID,
+				Domain:           parse.Host,
+				DomainProtocol:   parse.Scheme,
+				Name:             name,
+				Type:             configType,
+				Description:      description,
+				Data:             []byte(jsonData),
+				DashboardVersion: "1.0",
 			})
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)

@@ -2,7 +2,7 @@ package configView
 
 import "general_spider_controll_panel/view/layout"
 
-templ Main(title string) {
+templ Main(title string, urls []string) {
 	@layout.Base(title) {
 		<div class="flex h-screen">
 			@layout.LeftNavbar("Config")
@@ -14,16 +14,38 @@ templ Main(title string) {
 							<h3 class="text-lg font-semibold text-gray-900">Scrapy Crawl Preview</h3>
 						</div>
 						<div class="p-4">
-							<p class="text-sm text-gray-500 mb-4">This is a preview of a single item from your Scrapy crawl.</p>
-							<pre id="config-runner-container" class="bg-gray-100 p-4 rounded-md overflow-auto max-h-[400px] text-sm">
-								<div class="animate-pulse space-y-2">
-									<div class="h-4 bg-gray-200 rounded w-3/4"></div>
-									<div class="h-4 bg-gray-200 rounded"></div>
-									<div class="h-4 bg-gray-200 rounded"></div>
-									<div class="h-4 bg-gray-200 rounded w-5/6"></div>
-									<div class="h-4 bg-gray-200 rounded w-1/2"></div>
+							<div class="mt-2">
+								<div class="mb-4">
+									<label for="preview-url" class="block text-sm font-medium text-gray-700">URL to Test</label>
+									<input type="text" name="base-url" id="preview-url" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Enter URL to test"/>
 								</div>
-							</pre>
+								<div class="mb-4">
+									<label for="section-select" class="block text-sm font-medium text-gray-700">Select @section</label>
+									<select id="section-select" name="section-select" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+								</div>
+								<button
+									id="run-preview"
+									class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm"
+									hx-post="?action=test-config"
+									hx-include="#preview-config, #preview-url"
+									hx-target="#config-runner-container"
+								>
+									Run Preview
+								</button>
+							</div>
+							<input type="hidden" id="preview-config" name="jsonData"/>
+							<div class="mt-2">
+								<p class="text-sm text-gray-500 mb-4">This is a preview of a single item from your Scrapy crawl.</p>
+								<pre id="config-runner-container" class="bg-gray-100 p-4 rounded-md overflow-auto max-h-[400px] text-sm">
+									<div class="animate-pulse space-y-2">
+										<div class="h-4 bg-gray-200 rounded w-3/4"></div>
+										<div class="h-4 bg-gray-200 rounded"></div>
+										<div class="h-4 bg-gray-200 rounded"></div>
+										<div class="h-4 bg-gray-200 rounded w-5/6"></div>
+										<div class="h-4 bg-gray-200 rounded w-1/2"></div>
+									</div>
+								</pre>
+							</div>
 						</div>
 						<div class="border-t px-4 py-2 flex justify-end">
 							<button onclick={ hidePreviewModal() } class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
@@ -33,16 +55,35 @@ templ Main(title string) {
 					</div>
 				</div>
 				<form hx-post="?action=save-config" hx-include="#json-data, #name, #description, #base-url">
+					<input name="base-url" id="base-url" class="hidden" value=""/>
 					<div class="mb-4">
-						<label for="base-url" class="block font-semibold mb-1">Base URL</label>
-						<input
-							id="base-url"
-							name="base-url"
-							type="text"
-							required
-							placeholder="Enter base URL : http://example.onion"
-							class="w-full p-2 border border-gray-300 rounded-md"
-						/>
+						<div class="relative" id="dropdown-container">
+							<button id="dropdown-toggle" type="button" class="w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+								<span id="selected-option">Select a website...</span>
+								<svg class="w-5 h-5 ml-2 -mr-1 absolute right-2 top-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+									<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+								</svg>
+							</button>
+							<div id="dropdown-menu" class="absolute z-10 w-full mt-1 bg-white shadow-lg rounded-md hidden">
+								<div class="p-2">
+									<input type="text" id="custom-url-input" placeholder="Enter custom URL..." value="asdasd" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"/>
+								</div>
+								<ul id="url-list" class="max-h-60 overflow-auto">
+									for _, url := range urls {
+										<li class="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center">
+											<input value={url} class="hidden base-url-input"/>
+											<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+											</svg>
+											<div>
+												<div>{url}</div>
+												<div class="text-sm text-gray-500">{url}</div>
+											</div>
+										</li>
+									}
+								</ul>
+							</div>
+						</div>
 					</div>
 					<div class="mb-4">
 						<label for="name" class="block font-semibold mb-1">Name</label>
@@ -74,15 +115,15 @@ templ Main(title string) {
 						<textarea id="description" name="description" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="What is this config about ?"></textarea>
 					</div>
 					<div class="flex gap-4 mb-4">
-						<button id="add-config" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-							Add New
-							Configuration
+						<button type="button" id="add-config" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+							Add Field
 						</button>
 						<label class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 cursor-pointer">
 							Load from Disk
 							<input id="load-config" type="file" accept=".json" class="hidden"/>
 						</label>
 						<button
+							type="button"
 							id="download-config"
 							class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600"
 						>
@@ -94,29 +135,21 @@ templ Main(title string) {
 							Configuration
 						</button>
 						<button
-							type="submit"
+							type="button"
 							id="test-config"
-							hx-post="?action=test-config"
-							hx-include="#json-data, #base-url"
-							hx-target="#config-runner-container"
+							onClick={ showPreviewModal() }
 							class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-purple-300 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							Test Configuration
 						</button>
 					</div>
+					<span id="version-display" class="ml-4 text-sm text-gray-500 mb-2">Version : 1.1</span>
 					<div id="config-container" class="space-y-2"></div>
 					<div class="mt-4">
-						<details class="group">
-							<summary class="flex w-full cursor-pointer items-center justify-between rounded-lg bg-white px-4 py-2 text-left text-xl font-semibold shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-								<span>JSON Preview</span>
-								<svg class="h-5 w-5 transform transition-transform duration-300 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor">
-									<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-								</svg>
-							</summary>
-							<div class="mt-2 overflow-hidden rounded-md bg-gray-100 transition-all duration-300">
-								<pre id="json-preview" class="p-4 overflow-x-auto max-h-96"></pre>
-							</div>
-						</details>
+						<div class="mt-8">
+							<h2 class="text-xl font-bold mb-2">JSON Preview</h2>
+							<pre id="json-preview" class="bg-gray-800 text-white p-4 rounded-md overflow-x-auto"></pre>
+						</div>
 						<input type="hidden" id="json-data" name="jsonData"/>
 					</div>
 				</form>
@@ -127,499 +160,50 @@ templ Main(title string) {
 				<br/>
 			</div>
 		</div>
+		<script src="/public/config.js"></script>
 		<script>
-		document.body.addEventListener('htmx:beforeRequest', function(event) {
-		if (event.target && event.target.id == "test-config") {
-			document.getElementById('test-config').disabled = true;
-			document.getElementById('test-config').textContent = 'Submitting...';
-            const modal = document.getElementById('modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modalContent.classList.remove('-translate-y-full', 'scale-95', 'opacity-0');
-            }, 50);
-		}
-        
-		});
-		</script>
-		<script>
-         document.querySelector('button').addEventListener('click', () => {
-            const preContent = document.getElementById('json-preview').innerText;
-            document.getElementById('json-data').value = preContent;
-        });
-        let configs = [{ id: '1', type: 'xpath', value: '', children: [], key: '' }];
-        let baseUrl = '';
-        let draggedElement = null;
-        let originalParent = null;
-        let originalNextSibling = null;
-
-        function renderConfigs() {
-            const container = document.getElementById('config-container');
-            container.innerHTML = '';
-            renderConfigItems(configs, container);
-            updateJsonPreview();
-            saveToLocalStorage();
-        }
-
-        function renderConfigItems(items, container) {
-            items.forEach(config => {
-                const configElement = createConfigElement(config);
-                container.appendChild(configElement);
+            // document.body.addEventListener('htmx:beforeRequest', function(event) {
+            //     if (event.target && event.target.id == "test-config") {
+            //         document.getElementById('test-config').disabled = true;
+            //         document.getElementById('test-config').textContent = 'Submitting...';
+            //         const modal = document.getElementById('modal');
+            //         modal.classList.remove('hidden');
+            //         setTimeout(() => {
+            //             modal.classList.remove('opacity-0');
+            //             modalContent.classList.remove('-translate-y-full', 'scale-95', 'opacity-0');
+            //         }, 50);
+            //     }
+            // });
+            document.querySelector('button').addEventListener('click', () => {
+                const preContent = document.getElementById('json-preview').innerText;
+                document.getElementById('json-data').value = preContent;
             });
-        }
-
-        function createConfigElement(config) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'config-item bg-gray-50 p-2 rounded-md border border-gray-200';
-            wrapper.dataset.id = config.id;
-            wrapper.dataset.type = config.type;
-            wrapper.dataset.key = config.key || '';
-            wrapper.dataset.value = config.value || '';
-            wrapper.dataset.tag = config.tag || '';
-            const content = document.createElement('div');
-            content.className = 'flex items-center space-x-2';
-            content.innerHTML = `
-                <div class="cursor-move text-gray-500 hover:text-gray-700">≡</div>
-                <select class="p-1 border border-gray-300 rounded-md">
-                    ${['xpath', '_list', '_pagination', '_loop', '@section'].map(type => `<option value="${type}" ${config.type === type ? 'selected' : ''}>${type}</option>`).join('')}
-                </select>
-                <select class="tag-select p-1 border border-gray-300 rounded-md ${['_loop', '@section'].includes(config.type) ? '' : 'hidden'}">
-                    <option value="">Select tag</option>
-                    <option value="global" ${config.tag === 'global' ? 'selected' : ''}>global</option>
-                    <option value="parent" ${config.tag === 'parent' ? 'selected' : ''}>parent</option>
-                    <option value="children" ${config.tag === 'children' ? 'selected' : ''}>children</option>
-                </select>
-                <input placeholder="Enter key" value="${config.key || ''}" class="p-1 border border-gray-300 rounded-md flex-grow ${['_pagination', '_list'].includes(config.type) ? 'hidden' : ''}">
-                <input placeholder="Enter value" value="${config.value || ''}" class="p-1 border border-gray-300 rounded-md flex-grow ${['@section'].includes(config.type) ? 'hidden' : ''}">
-                <button type="button" class="add-child px-2 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 ${['xpath', '_pagination'].includes(config.type) ? 'hidden' : ''}">+</button>
-                <button type="button" class="remove-config px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">-</button>
-                ${config.type === 'xpath' ? ` <div class="flex items-center"><input type="checkbox" class="optional-toggle mr-1" ${config.key.endsWith('*') ? 'checked' : ''} /><span class="text-sm">Optional</span></div>` : ''}
-            `;
-            wrapper.appendChild(content);
-
-            const typeSelect = content.querySelector('select');
-            const tagSelect = content.querySelector('.tag-select');
-            const keyInput = content.querySelector('input[placeholder="Enter key"]');
-            const valueInput = content.querySelector('input[placeholder="Enter value"]');
-            const addButton = content.querySelector('button.add-child');
-            const removeButton = content.querySelector('button.remove-config');
-            const optionalToggle = content.querySelector('.optional-toggle');
-
-            typeSelect.onchange = (e) => updateConfig(wrapper, 'type', e.target.value);
-            tagSelect.onchange = (e) => updateConfig(wrapper, 'tag', e.target.value);
-            keyInput.onchange = (e) => updateConfig(wrapper, 'key', e.target.value);
-            valueInput.onchange = (e) => updateConfig(wrapper, 'value', e.target.value);
-            if (addButton) addButton.onclick = () => addChild(config.id);
-            removeButton.onclick = () => removeConfig(config.id);
-            if (optionalToggle) optionalToggle.onchange = () => toggleOptional(config.id);
-
-            wrapper.draggable = true;
-            wrapper.addEventListener('dragstart', (e) => dragStart(e, config.id));
-            wrapper.addEventListener('dragend', dragEnd);
-            wrapper.addEventListener('dragover', dragOver);
-            wrapper.addEventListener('drop', (e) => drop(e, config.id));
-
-            if (config.children.length > 0 && config.type !== 'xpath') {
-                const childrenContainer = document.createElement('div');
-                childrenContainer.className = 'ml-4 mt-2 space-y-2';
-                renderConfigItems(config.children, childrenContainer);
-                wrapper.appendChild(childrenContainer);
-            }
-
-            return wrapper;
-        }
-
-
-        function updateConfig(element, field, value) {
-            element.dataset[field] = value;
-            if (field === 'type') {
-                const keyInput = element.querySelector('input[placeholder="Enter key"]');
-                const valueInput = element.querySelector('input[placeholder="Enter value"]');
-                const addButton = element.querySelector('button.add-child');
-                const tagSelect = element.querySelector('.tag-select');
-                const optionalToggleContainer = element.querySelector('.optional-toggle').parentNode;
-
-                if (['_pagination', '_list'].includes(value)) {
-                    keyInput.classList.add('hidden');
-                    valueInput.classList.remove('hidden');
-                } else if (['@section'].includes(value)) {
-                    keyInput.classList.remove('hidden');
-                    valueInput.classList.add('hidden');
-                } else {
-                    keyInput.classList.remove('hidden');
-                    valueInput.classList.remove('hidden');
-                }
-
-                if (['_loop', '@section'].includes(value)) {
-                    tagSelect.classList.remove('hidden');
-                } else {
-                    tagSelect.classList.add('hidden');
-                }
-
-                if (addButton) {
-                    addButton.classList.toggle('hidden', ['xpath', '_pagination'].includes(value));
-                }
-                if (value === 'xpath') {
-                    optionalToggleContainer.classList.remove('hidden');
-                } else {
-                    optionalToggleContainer.classList.add('hidden');
-
-                }
-            }
-            const keyInput = element.querySelector('input[placeholder="Enter key"]');
-            const checkbox = element.querySelector('.optional-toggle');
-            const isOptional = keyInput.value.endsWith('*');
-            if (isOptional) {
-                checkbox.checked=true
-            } else {
-                checkbox.checked=false
-            }
-            rebuildConfigsFromDOM();
-            updateJsonPreview();
-            saveToLocalStorage();
-            updateTagOptions();
-        }
-
-        function toggleOptional(id) {
-            const element = document.querySelector(`.config-item[data-id="${id}"]`);
-            if (element) {
-                const keyInput = element.querySelector('input[placeholder="Enter key"]');
-                const checkbox = element.querySelector('.optional-toggle');
-                const isOptional = checkbox.checked;
-                if (isOptional) {
-                    keyInput.value = keyInput.value.endsWith('*') ? keyInput.value : keyInput.value + '*';
-                } else {
-                    keyInput.value = keyInput.value.endsWith('*') ? keyInput.value.slice(0, -1) : keyInput.value;
-                }
-                updateConfig(element, 'key', keyInput.value);
-            }
-        }
-
-
-
-        function updateTagOptions() {
-            const usedTags = new Set();
-            document.querySelectorAll('.config-item').forEach(item => {
-                if (['_loop', "@section"].includes(item.dataset.type) && item.dataset.tag) {
-                    usedTags.add(item.dataset.tag);
-                }
-            });
-
-            document.querySelectorAll('.tag-select').forEach(select => {
-                const currentValue = select.value;
-                select.innerHTML = `
-                    <option value="">Select tag</option>
-                    ${['global', 'parent', 'children'].map(tag => 
-                        `<option value="${tag}" ${usedTags.has(tag) && tag !== currentValue ? 'disabled' : ''}>${tag}</option>`
-                    ).join('')}
-                `;
-                select.value = currentValue;
-            });
-        }
-
-
-        function updateAddButtonVisibility(element) {
-            const type = element.dataset.type;
-            const addButton = element.querySelector('.add-child');
-            if (addButton) {
-                addButton.classList.toggle('hidden', ['xpath', '_pagination'].includes(type));
-            } else {
-
-            }
-        }
-
-        function rebuildConfigsFromDOM() {
-            const container = document.getElementById('config-container');
-            configs = buildConfigsFromElements(container.children);
-        }
-
-        function buildConfigsFromElements(elements) {
-            const result = [];
-            for (const element of elements) {
-                if (element.classList.contains('config-item')) {
-                    const config = {
-                        id: element.dataset.id,
-                        type: element.dataset.type,
-                        key: element.dataset.key,
-                        value: element.dataset.value,
-                        tag: element.dataset.tag,
-                        children: []
-                    };
-
-                    const childrenContainer = element.querySelector('div.ml-4');
-                    if (childrenContainer) {
-                        config.children = buildConfigsFromElements(childrenContainer.children);
-                    }
-                    result.push(config);
-                }
-            }
-            return result;
-        }
-
-        function addChild(parentId) {
-            const parentElement = document.querySelector(`.config-item[data-id="${parentId}"]`);
-            if (parentElement) {
-                const newConfig = { id: Date.now().toString(), type: 'xpath', value: '', children: [], key: '' };
-                const newElement = createConfigElement(newConfig);
-                let childrenContainer = parentElement.querySelector('div.ml-4');
-                if (!childrenContainer) {
-                    childrenContainer = document.createElement('div');
-                    childrenContainer.className = 'ml-4 mt-2 space-y-2';
-                    parentElement.appendChild(childrenContainer);
-                }
-                childrenContainer.appendChild(newElement);
-                rebuildConfigsFromDOM();
-                updateJsonPreview();
-                saveToLocalStorage();
-                updateTagOptions()
-            }
-        }
-
-        function removeConfig(id) {
-            const element = document.querySelector(`.config-item[data-id="${id}"]`);
-            if (element) {
-                element.remove();
-                rebuildConfigsFromDOM();
-                updateJsonPreview();
-                saveToLocalStorage();
-                updateTagOptions()
-            }
-        }
-
-        function dragStart(e, id) {
-            draggedElement = e.target.closest('.config-item');
-            originalParent = draggedElement.parentNode;
-            originalNextSibling = draggedElement.nextElementSibling;
-            e.dataTransfer.setData('text/plain', id);
-            setTimeout(() => {
-                draggedElement.classList.add('opacity-50', 'scale-105', 'shadow-lg');
-            }, 0);
-        }
-
-        function dragEnd(e) {
-            if (draggedElement) {
-                draggedElement.classList.remove('opacity-50', 'scale-105', 'shadow-lg');
-                if (!document.body.contains(draggedElement)) {
-                    if (originalNextSibling) {
-                        originalParent.insertBefore(draggedElement, originalNextSibling);
-                    } else {
-                        originalParent.appendChild(draggedElement);
-                    }
-                }
-                rebuildConfigsFromDOM();
-                updateJsonPreview();
-                saveToLocalStorage();
-            }
-            draggedElement = null;
-            originalParent = null;
-            originalNextSibling = null;
-        }
-
-        function dragOver(e) {
-            e.preventDefault();
-            const closestConfigItem = e.target.closest('.config-item');
-            if (closestConfigItem && closestConfigItem !== draggedElement) {
-                const rect = closestConfigItem.getBoundingClientRect();
-                const midpoint = (rect.top + rect.bottom) / 2;
-                if (e.clientY < midpoint) {
-                    closestConfigItem.parentNode.insertBefore(draggedElement, closestConfigItem);
-                } else {
-                    closestConfigItem.parentNode.insertBefore(draggedElement, closestConfigItem.nextSibling);
-                }
-            }
-        }
-
-        function drop(e, droppedOnId) {
-            e.preventDefault();
-            const draggedId = e.dataTransfer.getData('text');
-            if (draggedId !== droppedOnId) {
-                const droppedOnElement = document.querySelector(`.config-item[data-id="${droppedOnId}"]`);
-                if (droppedOnElement && !droppedOnElement.contains(draggedElement)) {
-                    droppedOnElement.parentNode.insertBefore(draggedElement, droppedOnElement.nextSibling);
-                }
-            }
-            draggedElement.classList.remove('opacity-50', 'scale-105', 'shadow-lg');
-            draggedElement = null;
-            rebuildConfigsFromDOM();
-            updateJsonPreview();
-            saveToLocalStorage();
-            updateTagOptions()
-        }
-
-        function cleanupConfigs(configs) {
-            const structure = {};
-            configs.forEach(config => {
-                if (config.type === 'xpath') {
-                    structure[config.key] = config.value
-                } else if (config.type === '_list') {
-                    structure[config.type] = {
-                        _element: config.value,
-                        ...cleanupConfigs(config.children)
-                    };
-                } else if (config.type === '_loop') {
-                    structure[config.type] = {
-                        _element: config.value,
-                        _key: config.key,
-                        _tag: config.tag,
-                        ...cleanupConfigs(config.children)
-                    };
-                } else if (config.type === '_pagination') {
-                    structure[config.type] = config.value
-                    cleanupConfigs(config.children);
-                } else if (config.type === '@section') {
-                    structure[config.key] = {
-                        _tag: config.tag,
-                        ...cleanupConfigs(config.children)
-                    };
-                }
-            });
-            return structure;
-        }
-
-        function updateJsonPreview() {
-            const cleanConfigs = cleanupConfigs(configs);
-            const fullConfig = {
-                base_url: baseUrl,
-                structure: cleanConfigs
-            };
-            document.getElementById('json-preview').textContent = JSON.stringify(fullConfig, null, 2);
-            document.getElementById('json-data').value = JSON.stringify(fullConfig, null, 2);
-        }
-
-        function saveToLocalStorage() {
-            localStorage.setItem('configDashboardState', JSON.stringify({
-                configs: configs,
-                baseUrl: baseUrl
-            }));
-        }
-
-        function loadFromLocalStorage() {
-            const savedState = localStorage.getItem('configDashboardState');
-            if (savedState) {
-                const parsedState = JSON.parse(savedState);
-                configs = parsedState.configs;
-                baseUrl = parsedState.baseUrl;
-                document.getElementById('base-url').value = baseUrl;
-                renderConfigs();
-                updateTagOptions();
-            }
-        }
-
-        function addNewConfig() {
-            const newConfig = { id: Date.now().toString(), type: 'xpath', value: '', children: [], key: '' };
-            const newElement = createConfigElement(newConfig);
-            document.getElementById('config-container').appendChild(newElement);
-            rebuildConfigsFromDOM();
-            updateJsonPreview();
-            saveToLocalStorage();
-            updateTagOptions();
-        }
-
-
-        function downloadConfig() {
-            const cleanConfigs = cleanupConfigs(configs);
-            const fullConfig = {
-                base_url: baseUrl,
-                structure: cleanConfigs
-            };
-            const blob = new Blob([JSON.stringify(fullConfig, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'config.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function loadConfig(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    try {
-                        const loadedConfig = JSON.parse(event.target.result);
-                        baseUrl = loadedConfig.base_url || '';
-                        document.getElementById('base-url').value = baseUrl;
-                        configs = convertStructureToConfigs(loadedConfig.structure);
-                        renderConfigs();
-                        updateTagOptions()
-                    } catch (error) {
-                        console.error('Error parsing JSON:', error);
-                        alert('Error loading configuration. Please make sure it\'s a valid JSON file.');
-                    }
-                };
-                reader.readAsText(file);
-            }
-        }
-
-        function convertStructureToConfigs(structure) {
-            const result = [];
-            for (const [key, value] of Object.entries(structure)) {
-                if (typeof value === 'string') {
-                    if (key === '_pagination') {
-                        result.push({
-                            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                            type: '_pagination',
-                            key: value,
-                            value: value,
-                            children: []
-                        });
-                    } else {
-                        result.push({
-                            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                            type: 'xpath',
-                            key: key,
-                            value: value,
-                            children: []
-                        });
-                    }
-                } else if (typeof value === 'object') {
-                    const newConfig = {
-                        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                        type: key.startsWith('@') ? '@section' : key,
-                        key: key.startsWith('@') ? key : '',
-                        value: value._element || '',
-                        tag: value._tag || '',
-                        children: []
-                    };
-                    if (key === '_loop') {
-                        newConfig.key = value._key;
-                    } else if (key === '_list') {
-                        newConfig.key = value._element;
-                    }
-                    const childConfigs = convertStructureToConfigs(
-                        Object.fromEntries(
-                            Object.entries(value).filter(([k]) => !['_element', '_key', '_tag'].includes(k))
-                        )
-                    );
-                    newConfig.children = childConfigs;
-                    result.push(newConfig);
-                }
-            }
-            return result;
-        }
-
-        document.getElementById('add-config').addEventListener('click', addNewConfig);
-        document.getElementById('download-config').addEventListener('click', downloadConfig);
-        document.getElementById('load-config').addEventListener('change', loadConfig);
-        document.getElementById('base-url').addEventListener('change', (e) => {
-            baseUrl = e.target.value;
-            updateJsonPreview();
-            saveToLocalStorage();
-        });
-        document.getElementById('config-container').addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
-
-        loadFromLocalStorage();
-
-        if (configs.length === 0) {
-            renderConfigs();
-        }
     </script>
 	}
+}
+
+script showPreviewModal() {
+	const modal = document.getElementById('modal');
+	const sectionSelect = document.getElementById('section-select');
+
+    modal.classList.remove('hidden');
+
+	sectionSelect.innerHTML = '';
+    const sections = getSections();
+	const option = document.createElement('option');
+    option.value = "main";
+    option.textContent = "main";
+    sectionSelect.appendChild(option);
+    sections.forEach(section => {
+        const option = document.createElement('option');
+        option.value = section.key;
+        option.textContent = section.key;
+        sectionSelect.appendChild(option);
+    });
+
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+    }, 50);
 }
 
 script hidePreviewModal() {

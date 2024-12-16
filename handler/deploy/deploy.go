@@ -1,6 +1,7 @@
 package deployHandler
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -21,6 +22,17 @@ var version = "1.0"
 func GET(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("hx-request") == "true" {
 		switch r.URL.Query().Get("action") {
+		case "query-broker":
+			query := r.URL.Query().Get("q")
+			brokers, err := app.Server.Database.GetKafkaBrokersByName(query)
+			fmt.Println(brokers)
+			if err != nil {
+				app.Server.Logger.Println(err.Error())
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			deployView.BrokersUI(brokers).Render(r.Context(), w)
+			return
 		case "get-proxies":
 			proxies, err := app.Server.Database.GetActiveProxies()
 			if err != nil {
@@ -63,7 +75,19 @@ func GET(w http.ResponseWriter, r *http.Request) {
 		case "get-additional-output-settings":
 			outputDest := r.URL.Query().Get("outputDestination")
 			if outputDest == "kafka" {
-				deployView.KafkaSettingsUI().Render(r.Context(), w)
+				brokers, err := app.Server.Database.GetKafkaBrokers()
+				if err != nil {
+					app.Server.Logger.Println(err.Error())
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				topics, err := app.Server.Database.GetKafkaTopics()
+				if err != nil {
+					app.Server.Logger.Println(err.Error())
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				deployView.KafkaSettingsUI(brokers, topics).Render(r.Context(), w)
 				return
 			} else {
 				w.Write([]byte(""))
@@ -90,9 +114,10 @@ func POST(w http.ResponseWriter, r *http.Request) {
 	}
 	configID := r.Form.Get("configSelect")
 	outputDest := r.Form.Get("outputDestination")
-	kafkaBrokers := r.Form.Get("kafkaBrokers")
+	selectedBrokers := r.Form.Get("selectedBrokers")
 	kafkaTopic := r.Form.Get("kafkaTopic")
 	proxies := r.Form.Get("selectedProxies")
+	cookies := r.Form.Get("cookies")
 
 	proxyList := strings.Split(proxies, ",")
 	for i, proxy := range proxyList {
@@ -117,8 +142,41 @@ func POST(w http.ResponseWriter, r *http.Request) {
 		"proxies":    base64.StdEncoding.EncodeToString(proxiesJSON),
 		"jobid":      jobid,
 	}
-	if kafkaBrokers != "" {
-		additionalArgs["kafka_server"] = kafkaBrokers
+
+	if cookies != "" {
+		var cookiesJson map[string]interface{}
+		err := json.Unmarshal([]byte(cookies), &cookiesJson)
+		if err != nil {
+			app.Server.Logger.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		cookiesJsonBytes, err := json.Marshal(cookiesJson)
+		if err != nil {
+			app.Server.Logger.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		additionalArgs["cookies"] = base64.StdEncoding.EncodeToString(cookiesJsonBytes)
+	}
+
+	if selectedBrokers != "" {
+		brokersList := strings.Split(selectedBrokers, ",")
+		var brokers []string
+		brokerWriter := &bytes.Buffer{}
+		for _, brokerID := range brokersList {
+			broker, err := app.Server.Database.GetKafkaBrokersById(brokerID)
+			if err != nil {
+				app.Server.Logger.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			fmt.Println("broker : ", broker)
+			brokers = append(brokers, fmt.Sprintf("%s:%s", broker.Host, broker.Port))
+		}
+		json.NewEncoder(brokerWriter).Encode(brokers)
+		additionalArgs["kafka_server"] = base64.StdEncoding.EncodeToString(brokerWriter.Bytes())
+		fmt.Println("nih : ", additionalArgs["kafka_server"])
 	}
 	if kafkaTopic != "" {
 		additionalArgs["kafka_topic"] = kafkaTopic

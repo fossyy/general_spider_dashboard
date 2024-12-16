@@ -31,7 +31,6 @@ func (w *wrapper) WriteHeader(statusCode int) {
 
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-
 		wrappedWriter := &wrapper{
 			ResponseWriter: writer,
 			request:        request,

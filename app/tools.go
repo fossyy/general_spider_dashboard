@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -86,16 +87,29 @@ func (t *Tools) CheckProxy(proxy *models.Proxy) {
 		Timeout: 30 * time.Second,
 	}
 	resp, err := client.Get("https://example.com")
-	if err != nil || resp.StatusCode != http.StatusOK {
-		err := t.database.UpdateProxyStatus(proxy.Address, models.Offline)
-		if err != nil {
-			t.logger.Println("Error while checking Proxy : ", err)
-			return
+	if err != nil {
+		ignorable := []string{
+			"connection refused",
+			"unreachable",
+			"no route to host",
+			"invalid argument",
+		}
+		for _, ignore := range ignorable {
+			if strings.Contains(err.Error(), ignore) {
+				t.logger.Printf("Proxy : %s is offline", proxyUrl)
+				err := t.database.UpdateProxyStatus(proxy.Address, models.Offline)
+				if err != nil {
+					t.logger.Println("Error while updating Proxy status : ", err)
+					return
+				}
+				return
+			}
 		}
 		t.logger.Println("Error while checking Proxy : ", err)
 		return
 	}
 	defer resp.Body.Close()
+
 	if proxy.Usage != "" {
 		err = t.database.UpdateProxyStatus(proxy.Address, models.Used)
 		if err != nil {

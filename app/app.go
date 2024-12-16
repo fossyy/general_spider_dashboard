@@ -3,10 +3,13 @@ package app
 import (
 	_ "embed"
 	"encoding/json"
+	"fmt"
 	"general_spider_controll_panel/types"
 	"general_spider_controll_panel/types/models"
 	"general_spider_controll_panel/utils"
+	"github.com/IBM/sarama"
 	"github.com/go-co-op/gocron/v2"
+	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"sync"
@@ -20,6 +23,15 @@ const (
 	Success BackendResponseType = "success"
 	Info    BackendResponseType = "info"
 )
+
+type WebsocketClient struct {
+	Session string
+	Conn    *websocket.Conn
+}
+
+type WebsocketClients struct {
+	Clients map[string]*WebsocketClient
+}
 
 type BackendResponse struct {
 	Message string              `json:"message"`
@@ -166,6 +178,44 @@ func NewApp(addr string, handler http.Handler, database types.Database, cron goc
 			}
 			wg.Wait()
 			time.Sleep(5 * time.Minute)
+		}
+	}()
+
+	go func() {
+		config := sarama.NewConfig()
+		config.Version = sarama.DefaultVersion
+
+		brokers, err := database.GetKafkaBrokers()
+		if err != nil {
+			logger.Println("Error: " + err.Error())
+			return
+		}
+		for _, broker := range brokers {
+			client, err := sarama.NewClient([]string{fmt.Sprintf("%s:%s", broker.Host, broker.Port)}, config)
+			if err != nil {
+				logger.Println("Error: " + err.Error())
+				return
+			}
+			controller, err := client.Controller()
+			if err != nil {
+				logger.Println("Error: " + err.Error())
+				return
+			}
+			fmt.Println("Kafka controller : ", controller.Addr())
+			brokersList := client.Brokers()
+			if len(brokersList) > 0 {
+				fmt.Println("Kafka Broker is up and running!")
+				for _, broker := range brokersList {
+					fmt.Printf("Broker: %v\n", broker.Addr())
+				}
+			} else {
+				fmt.Println("No brokers available")
+			}
+
+			if err := client.Close(); err != nil {
+				log.Printf("Failed to close client: %v", err)
+				return
+			}
 		}
 	}()
 

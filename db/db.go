@@ -1,7 +1,9 @@
 package db
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"general_spider_controll_panel/types"
 	"general_spider_controll_panel/types/models"
@@ -24,7 +26,7 @@ const (
 	EnableSSL  SSLMode = "enable"
 )
 
-func NewPostgresDB(username, password, host, port, dbName string, mode SSLMode) types.Database {
+func NewPostgresDB(ctx context.Context, username, password, host, port, dbName string, mode SSLMode) (types.Database, error) {
 	var err error
 	var count int64
 
@@ -36,13 +38,13 @@ func NewPostgresDB(username, password, host, port, dbName string, mode SSLMode) 
 	})
 
 	if err != nil {
-		panic("failed to connect database: " + err.Error())
+		return nil, fmt.Errorf("failed to connect database: %s", err.Error())
 	}
 
-	initDB.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", dbName).Scan(&count)
+	initDB.WithContext(ctx).Raw("SELECT count(*) FROM pg_database WHERE datname = ?", dbName).Scan(&count)
 	if count <= 0 {
-		if err := initDB.Exec("CREATE DATABASE " + dbName).Error; err != nil {
-			panic("Error creating database: " + err.Error())
+		if err := initDB.WithContext(ctx).Exec("CREATE DATABASE " + dbName).Error; err != nil {
+			return nil, fmt.Errorf("error creating database: %s", err.Error())
 		}
 	}
 
@@ -54,30 +56,35 @@ func NewPostgresDB(username, password, host, port, dbName string, mode SSLMode) 
 	})
 
 	if err != nil {
-		panic("failed to connect database: " + err.Error())
+		return nil, fmt.Errorf("failed to connect database: %s", err.Error())
 	}
 
-	err = DB.AutoMigrate(&models.Config{})
+	err = DB.WithContext(ctx).AutoMigrate(&models.Config{})
 	if err != nil {
-		panic(err.Error())
-		return nil
+		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
 	}
-	err = DB.AutoMigrate(&models.Proxy{})
+	err = DB.WithContext(ctx).AutoMigrate(&models.Proxy{})
 	if err != nil {
-		panic(err.Error())
-		return nil
+		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
 	}
-	err = DB.AutoMigrate(&models.Schedule{})
+	err = DB.WithContext(ctx).AutoMigrate(&models.Schedule{})
 	if err != nil {
-		panic(err.Error())
-		return nil
+		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
 	}
-	err = DB.AutoMigrate(&models.Timeline{})
+	err = DB.WithContext(ctx).AutoMigrate(&models.Timeline{})
 	if err != nil {
-		panic(err.Error())
-		return nil
+		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
 	}
-	return &postgresDB{DB}
+	err = DB.WithContext(ctx).AutoMigrate(&models.KafkaBroker{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
+	}
+	err = DB.WithContext(ctx).AutoMigrate(&models.KafkaTopic{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
+	}
+
+	return &postgresDB{DB}, nil
 }
 
 func (db *postgresDB) CreateConfig(config *models.Config) error {
@@ -98,6 +105,28 @@ func (db *postgresDB) GetDomains() ([]string, error) {
 		return nil, err
 	}
 	return domains, nil
+}
+
+func (db *postgresDB) GetDomainsWithSchema() ([]string, error) {
+	var results []struct {
+		DomainProtocol string
+		Domain         string
+	}
+	var combinedResults []string
+
+	err := db.Model(&models.Config{}).
+		Select("DISTINCT domain_protocol, domain").
+		Scan(&results).Error
+	if err != nil {
+		return nil, err
+	}
+
+	for _, row := range results {
+		combined := row.DomainProtocol + "://" + row.Domain
+		combinedResults = append(combinedResults, combined)
+	}
+
+	return combinedResults, nil
 }
 
 func (db *postgresDB) GetConfigsIDByDomain(domain string) ([]string, error) {
@@ -339,4 +368,57 @@ func (db *postgresDB) RemoveTimelineByContext(context string) error {
 		return err
 	}
 	return tx.Commit().Error
+}
+
+func (db *postgresDB) GetKafkaBrokers() ([]*models.KafkaBroker, error) {
+	var kafkaBrokers []*models.KafkaBroker
+	if err := db.Find(&kafkaBrokers).Error; err != nil {
+		return nil, err
+	}
+	return kafkaBrokers, nil
+}
+
+func (db *postgresDB) GetKafkaBrokersById(id string) (*models.KafkaBroker, error) {
+	var kafkaBroker models.KafkaBroker
+	if err := db.Where("broker_id = ?", id).First(&kafkaBroker).Error; err != nil {
+		return nil, err
+	}
+	return &kafkaBroker, nil
+}
+
+func (db *postgresDB) GetKafkaBrokersByName(name string) ([]*models.KafkaBroker, error) {
+	var kafkaBrokers []*models.KafkaBroker
+
+	if err := db.Where("broker_name LIKE ?", "%"+name+"%").Find(&kafkaBrokers).Error; err != nil {
+		return nil, err
+	}
+	return kafkaBrokers, nil
+}
+
+func (db *postgresDB) CreateKafkaBroker(broker *models.KafkaBroker) error {
+	return db.Create(broker).Error
+}
+
+func (db *postgresDB) GetKafkaTopics() ([]*models.KafkaTopic, error) {
+	var topics []*models.KafkaTopic
+	if err := db.Find(&topics).Error; err != nil {
+		return nil, err
+	}
+	return topics, nil
+}
+
+func (db *postgresDB) IsTopicPresent(name string) bool {
+	var count int64
+	err := db.DB.Model(&models.KafkaTopic{}).Where("topic_name = ?", name).Count(&count).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false
+		}
+		return false
+	}
+	return count > 0
+}
+
+func (db *postgresDB) CreateKafkaTopic(kafkaTopic *models.KafkaTopic) error {
+	return db.Create(kafkaTopic).Error
 }
