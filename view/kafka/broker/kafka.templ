@@ -1,0 +1,152 @@
+package kafkaView
+
+import (
+	"general_spider_controll_panel/types/models"
+	"general_spider_controll_panel/view/layout"
+)
+
+templ Main(title string, brokers []*models.KafkaBroker) {
+	@layout.Base(title) {
+		<div class="flex h-screen">
+			@layout.LeftNavbar("Kafka broker")
+			<div class="flex-grow p-4 lg:p-8 overflow-auto  ">
+				<h1 class="text-3xl font-bold mb-6">Kafka Brokers</h1>
+				<div class="bg-white rounded-lg shadow-md overflow-hidden">
+					<div class="p-4 flex justify-between items-center border-b">
+						<input type="text" placeholder="Search brokers..." class="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+						<a href="/kafka/broker/add" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+							Add New Broker
+						</a>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="min-w-full divide-y divide-gray-200">
+							<thead class="bg-gray-50">
+								<tr>
+									<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Broker ID</th>
+									<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Broker Name</th>
+									<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Host</th>
+									<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Port</th>
+									<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+									<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+								</tr>
+							</thead>
+							<tbody class="bg-white divide-y divide-gray-200">
+								for _, broker := range brokers {
+									<tr>
+										<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ broker.BrokerID.String() }</td>
+										<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 broker-group">{ broker.BrokerGroup }</td>
+										<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ broker.Host }</td>
+										<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ broker.Port }</td>
+										<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+											<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+												TODO: IMPLEMENT
+											</span>
+										</td>
+										<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+											<a href="#" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+											<button type="button" onClick={ showDeletionModal(broker.BrokerGroup) } class="text-red-600 hover:text-red-900">Remove</button>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+					// <div class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+					// 	<div class="flex-1 flex justify-between sm:hidden">
+					// 		<a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+					// 			Previous
+					// 		</a>
+					// 		<a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+					// 			Next
+					// 		</a>
+					// 	</div>
+					// <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+					// 	<div>
+					// 		<p class="text-sm text-gray-700">
+					// 			Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">3</span> results
+					// 		</p>
+					// 	</div>
+					// 	<div>
+					// 		<nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+					// 			<a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+					// 				<span class="sr-only">Previous</span>
+					// 				<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+					// 					<path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+					// 				</svg>
+					// 			</a>
+					// 			<a href="#" aria-current="page" class="z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+					// 				1
+					// 			</a>
+					// 			<a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+					// 				<span class="sr-only">Next</span>
+					// 				<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+					// 					<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+					// 				</svg>
+					// 			</a>
+					// 		</nav>
+					// 	</div>
+					// </div>
+					// </div>
+				</div>
+			</div>
+			<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden opacity-0 transition-opacity duration-300 z-50">
+				<div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white transform transition-all duration-300 -translate-y-full scale-95 opacity-0 z-50">
+					<div class="mt-3 text-center">
+						<h3 class="text-lg leading-6 font-medium text-gray-900">Confirm Deletion</h3>
+						<div class="mt-2 px-7 py-3">
+							<p class="text-sm text-gray-500">
+								Are you sure you want to delete the Kafka broker group "<span class="font-medium break-all" id="brokerGroup">_</span>", which contains 
+								<span class="font-medium" id="brokerCount">_</span> broker(s)? 
+								This action cannot be undone.
+							</p>
+						</div>
+						<div class="items-center px-4 py-3">
+							<button onClick={ hideDeletionModal() } hx-swap="outerHTML" id="confirmDelete" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 transition duration-300">
+								Yes, delete this group
+							</button>
+							<button onClick={ hideDeletionModal() } id="cancelDelete" class="mt-3 px-4 py-2 bg-white text-gray-700 text-base font-medium rounded-md w-full shadow-sm border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition duration-300">
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+script showDeletionModal(group string) {
+    const modal = document.getElementById('deleteModal');
+    const modalContent = modal.querySelector('div');
+    const confirmDelete = document.getElementById('confirmDelete');
+	const brokerGroup = document.getElementById('brokerGroup')
+	const brokerCount = document.getElementById('brokerCount')
+
+	brokerGroup.textContent = group
+	const rows = document.querySelectorAll('.broker-group');
+	let count = 0;
+	
+    rows.forEach(row => {
+        if (row && row.textContent.trim() === group) {
+            count++;
+        }
+    });
+	brokerCount.textContent = count
+    htmx.process(confirmDelete);
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modalContent.classList.remove('-translate-y-full', 'scale-95', 'opacity-0');
+    }, 50);
+}
+
+script hideDeletionModal() {
+    const modal = document.getElementById('deleteModal');
+    const modalContent = modal.querySelector('div');
+
+    modal.classList.add('opacity-0');
+    modalContent.classList.add('-translate-y-full', 'scale-95', 'opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
