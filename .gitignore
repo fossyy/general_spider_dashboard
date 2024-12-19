@@ -1,5 +1,4 @@
 .env
-Dockerfile
 twistd.pid
 tmp
 python
