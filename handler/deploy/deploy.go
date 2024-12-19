@@ -81,13 +81,7 @@ func GET(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
-				topics, err := app.Server.Database.GetKafkaTopics()
-				if err != nil {
-					app.Server.Logger.Println(err.Error())
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				deployView.KafkaSettingsUI(brokers, topics).Render(r.Context(), w)
+				deployView.KafkaSettingsUI(brokers).Render(r.Context(), w)
 				return
 			} else {
 				w.Write([]byte(""))

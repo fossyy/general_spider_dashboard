@@ -8,8 +8,6 @@ import (
 	deployHandler "general_spider_controll_panel/handler/deploy"
 	"general_spider_controll_panel/handler/kafka/broker"
 	"general_spider_controll_panel/handler/kafka/broker/add"
-	kafkaTopicHandler "general_spider_controll_panel/handler/kafka/topic"
-	kafkaTopicAddHandler "general_spider_controll_panel/handler/kafka/topic/add"
 	proxiesHandler "general_spider_controll_panel/handler/proxies"
 	handlerSpidersDomainList "general_spider_controll_panel/handler/spiders"
 	handlerSpiderDetails "general_spider_controll_panel/handler/spiders/details"
@@ -46,9 +44,6 @@ func Setup() *http.ServeMux {
 	kafkaRouter.HandleFunc("GET /broker", broker.GET)
 	kafkaRouter.HandleFunc("GET /broker/add", kafkaBrokerAddHandler.GET)
 	kafkaRouter.HandleFunc("POST /broker/add", kafkaBrokerAddHandler.POST)
-	kafkaRouter.HandleFunc("GET /topic", kafkaTopicHandler.GET)
-	kafkaRouter.HandleFunc("GET /topic/add", kafkaTopicAddHandler.GET)
-	kafkaRouter.HandleFunc("POST /topic/add", kafkaTopicAddHandler.POST)
 
 	handler.Handle("/results/", http.StripPrefix("/results/", http.FileServer(http.Dir("./results/"))))
 	handler.Handle("/logs/", http.StripPrefix("/logs/", http.FileServer(http.Dir("./logs/"))))

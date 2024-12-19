@@ -193,7 +193,7 @@ type Database interface {
 	GetKafkaBrokersById(id string) (*models.KafkaBroker, error)
 	CreateKafkaBroker(kafkaBroker *models.KafkaBroker) error
 
-	GetKafkaTopics() ([]*models.KafkaTopic, error)
-	IsTopicPresent(name string) bool
-	CreateKafkaTopic(kafkaTopic *models.KafkaTopic) error
+	//GetKafkaTopics() ([]*models.KafkaTopic, error)
+	//IsTopicPresent(name string) bool
+	//CreateKafkaTopic(kafkaTopic *models.KafkaTopic) error
 }

@@ -3,31 +3,47 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16.0
+    restart: on-failure
     environment:
-      POSTGRES_PASSWORD: VerySecretPassword
+      - POSTGRES_PASSWORD=VerySecretPassword
+      - POSTGRES_DB=general_spider
     volumes:
       - postgres:/var/lib/postgresql/data
     networks:
       - scrapyd
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d mydatabase" ]
+      interval: 30s
+      retries: 5
+      timeout: 20s
+      start_period: 10s
 
   scrapyd:
-    image: fossyy/backup:scrapyd
+    image: scrapyd
     restart: on-failure
+    depends_on:
+      - postgres
     volumes:
       - /opt/general_engine:/scrapyd:Z
       - /opt/general_engine/logs:/scrapyd/logs
     environment:
-      - ENABLE_MONITOR=True
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USERNAME=postgres
       - DB_PASSWORD=VerySecretPassword
-      - DB_NAME=config
+      - DB_NAME=general_spider
+      - DASHBOARD_ADDRESS=http://general_engine_dashboard:8080
     networks:
       - scrapyd
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail http://localhost:6800/ --max-time 5 || exit 1" ]
+      interval: 30s
+      retries: 5
+      timeout: 10s
+      start_period: 10s
 
   general_engine_dashboard:
-    image: fossyy/backup:general_engine_dashboard
+    image: dashboard
     restart: on-failure
     depends_on:
       - scrapyd
@@ -35,7 +51,7 @@ services:
     links:
       - scrapyd
     ports:
-      - "8081:8080"
+      - "8080:8080"
     volumes:
       - /opt/general_engine/logs:/general/logs
     environment:
@@ -45,7 +61,7 @@ services:
       - DB_PORT=5432
       - DB_USERNAME=postgres
       - DB_PASSWORD=VerySecretPassword
-      - DB_NAME=config
+      - DB_NAME=general_spider
       - SCRAPYD_URL=http://scrapyd:6800
       - torproxy1,
     networks:
@@ -56,11 +72,10 @@ services:
     environment:
       - BW=100
     ports:
-      - "9050-9099:9050"
-      - "8118-8167:8118"
-    deploy:
-      mode: replicated
-      replicas: 5
+      - "8118:8118"
+#    deploy:
+#      mode: replicated
+#      replicas: 5
     restart: always
     networks:
       - scrapyd

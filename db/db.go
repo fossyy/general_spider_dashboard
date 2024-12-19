@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"general_spider_controll_panel/types"
 	"general_spider_controll_panel/types/models"
@@ -79,11 +78,18 @@ func NewPostgresDB(ctx context.Context, username, password, host, port, dbName s
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
 	}
-	err = DB.WithContext(ctx).AutoMigrate(&models.KafkaTopic{})
+	err = DB.WithContext(ctx).AutoMigrate(&models.ConfigHistory{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
 	}
-
+	err = DB.WithContext(ctx).AutoMigrate(&models.TempVersion{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
+	}
+	err = DB.WithContext(ctx).AutoMigrate(&models.DashboardConfig{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
+	}
 	return &postgresDB{DB}, nil
 }
 
@@ -399,26 +405,26 @@ func (db *postgresDB) CreateKafkaBroker(broker *models.KafkaBroker) error {
 	return db.Create(broker).Error
 }
 
-func (db *postgresDB) GetKafkaTopics() ([]*models.KafkaTopic, error) {
-	var topics []*models.KafkaTopic
-	if err := db.Find(&topics).Error; err != nil {
-		return nil, err
-	}
-	return topics, nil
-}
-
-func (db *postgresDB) IsTopicPresent(name string) bool {
-	var count int64
-	err := db.DB.Model(&models.KafkaTopic{}).Where("topic_name = ?", name).Count(&count).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false
-		}
-		return false
-	}
-	return count > 0
-}
-
-func (db *postgresDB) CreateKafkaTopic(kafkaTopic *models.KafkaTopic) error {
-	return db.Create(kafkaTopic).Error
-}
+//func (db *postgresDB) GetKafkaTopics() ([]*models.KafkaTopic, error) {
+//	var topics []*models.KafkaTopic
+//	if err := db.Find(&topics).Error; err != nil {
+//		return nil, err
+//	}
+//	return topics, nil
+//}
+//
+//func (db *postgresDB) IsTopicPresent(name string) bool {
+//	var count int64
+//	err := db.DB.Model(&models.KafkaTopic{}).Where("topic_name = ?", name).Count(&count).Error
+//	if err != nil {
+//		if errors.Is(err, gorm.ErrRecordNotFound) {
+//			return false
+//		}
+//		return false
+//	}
+//	return count > 0
+//}
+//
+//func (db *postgresDB) CreateKafkaTopic(kafkaTopic *models.KafkaTopic) error {
+//	return db.Create(kafkaTopic).Error
+//}

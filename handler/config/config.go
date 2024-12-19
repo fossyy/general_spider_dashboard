@@ -109,14 +109,13 @@ func POST(w http.ResponseWriter, r *http.Request) {
 			}
 
 			err = app.Server.Database.CreateConfig(&models.Config{
-				ID:               configID,
-				Domain:           parse.Host,
-				DomainProtocol:   parse.Scheme,
-				Name:             name,
-				Type:             configType,
-				Description:      description,
-				Data:             []byte(jsonData),
-				DashboardVersion: "1.0",
+				ID:             configID,
+				Domain:         parse.Host,
+				DomainProtocol: parse.Scheme,
+				Name:           name,
+				Type:           configType,
+				Description:    description,
+				Data:           []byte(jsonData),
 			})
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
