@@ -4,6 +4,7 @@ import (
 	handlerPreview "general_spider_controll_panel/handler/api/preview"
 	configHandler "general_spider_controll_panel/handler/config"
 	handlerConfigByID "general_spider_controll_panel/handler/config/configByID"
+	handlerGetConfigVersion "general_spider_controll_panel/handler/config/version"
 	handlerConfigs "general_spider_controll_panel/handler/configs"
 	deployHandler "general_spider_controll_panel/handler/deploy"
 	"general_spider_controll_panel/handler/kafka/broker"
@@ -21,6 +22,7 @@ func Setup() *http.ServeMux {
 	handler.HandleFunc("GET /config", configHandler.GET)
 	handler.HandleFunc("POST /config", configHandler.POST)
 	handler.HandleFunc("GET /config/{id}", handlerConfigByID.GET)
+	handler.HandleFunc("GET /config/version/{id}", handlerGetConfigVersion.GET)
 	handler.HandleFunc("GET /configs", handlerConfigs.GET)
 	handler.HandleFunc("GET /spiders", handlerSpidersDomainList.GET)
 	handler.HandleFunc("GET /spiders/{project}", HandlerSpiders.GET)

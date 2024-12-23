@@ -48,7 +48,7 @@ func Main(title string, domains []string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex\">")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 1)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -56,12 +56,12 @@ func Main(title string, domains []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"container mx-auto px-4 py-8\"><h1 class=\"text-3xl font-bold text-gray-800 mb-6\">Deploy New Spider</h1><div class=\"bg-white shadow-md rounded-lg overflow-hidden\"><div class=\"p-6\"><form id=\"deploySpiderForm\" hx-post=\"/deploy\"><div class=\"mb-6\"><label for=\"domainSelect\" class=\"block text-sm font-medium text-gray-700 mb-2\">Select Website Domain</label> <select id=\"domainSelect\" name=\"domainSelect\" hx-get=\"?action=get-configs\" hx-trigger=\"change\" hx-target=\"#configSelect\" hx-swap=\"innerHTML\" required class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500\"><option value=\"None\">Choose a domain</option> ")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 2)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, domain := range domains {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<option value=\"")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 3)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -74,7 +74,7 @@ func Main(title string, domains []string) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 4)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -87,12 +87,12 @@ func Main(title string, domains []string) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option>")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 5)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</select></div><div class=\"mb-6\"><label for=\"configSelect\" class=\"block text-sm font-medium text-gray-700 mb-2\">Select Configuration</label> <select id=\"configSelect\" name=\"configSelect\" required class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500\"><option value=\"\">Choose a configuration</option></select></div><div class=\"mb-6\"><label for=\"proxies\" class=\"block text-sm font-medium text-gray-700\">Select Proxies</label><div class=\"relative\"><div id=\"proxy-list-continer\" class=\"space-y-2\" hx-get=\"?action=get-proxies\" hx-trigger=\"load\"><div class=\"h-32 w-full bg-gray-200 rounded animate-pulse\"></div><div class=\"p-4 bg-yellow-100 rounded-md space-y-2\"><div class=\"h-4 w-56 bg-yellow-200 rounded animate-pulse\"></div><div class=\"h-3 w-72 bg-yellow-200 rounded animate-pulse\"></div></div></div></div><div id=\"selectedProxies\" class=\"mt-2 flex flex-wrap gap-2\"></div><input type=\"hidden\" id=\"selectedProxiesInput\" name=\"selectedProxies\" value=\"\"></div><div class=\"mb-6\"><div id=\"parseModal\" class=\"fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden opacity-0 transition-opacity duration-300 z-50\"><div class=\"relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white transform transition-all duration-300 -translate-y-full scale-95 opacity-0 z-50\"><div class=\"mt-3 text-center\"><h3 class=\"text-lg leading-6 font-medium text-gray-900\">Confirm Deletion</h3><div class=\"mt-2 px-7 py-3\"><input type=\"text\" id=\"header-input\" class=\"w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500\" placeholder=\"cookie1=value1; cookie2=value2; cookie3=value3\"></div><div class=\"items-center px-4 py-3\">")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 6)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -100,7 +100,7 @@ func Main(title string, domains []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button type=\"button\" onClick=\"")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 7)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -109,7 +109,7 @@ func Main(title string, domains []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 transition duration-300\">Parse Header</button> ")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 8)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -117,7 +117,7 @@ func Main(title string, domains []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button type=\"button\" onClick=\"")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 9)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -126,7 +126,7 @@ func Main(title string, domains []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"mt-3 px-4 py-2 bg-white text-gray-700 text-base font-medium rounded-md w-full shadow-sm border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition duration-300\">Cancel</button></div></div></div></div><label for=\"json-input\" class=\"block text-sm font-medium text-gray-700 mb-2\">Cookie JSON (Opsional)</label> <textarea id=\"json-input\" rows=\"6\" class=\"w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500 font-mono\" placeholder=\"{\n  &#34;cookie_1&#34;: &#34;value_1&#34;,\n  &#34;cookie_2&#34;: &#34;value_2&#34;,\n  &#34;cookie_3&#34;: &#34;value_3&#34;,\n  &#34;cookie_4&#34;: &#34;value_4&#34;,\n}\n\"></textarea><div class=\"mb-6\"><div class=\"flex space-x-4\">")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 10)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -134,7 +134,7 @@ func Main(title string, domains []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button type=\"button\" onClick=\"")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 11)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -143,7 +143,7 @@ func Main(title string, domains []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"flex-1 bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:shadow-outline\">Parse JSON</button> ")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 12)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -151,7 +151,7 @@ func Main(title string, domains []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button type=\"button\" onClick=\"")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 13)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -160,7 +160,7 @@ func Main(title string, domains []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"flex-1 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:shadow-outline\">Parse Header</button></div><div id=\"result\" class=\"mt-6 p-4 bg-gray-100 rounded-lg hidden\"><h3 class=\"text-lg font-semibold mb-2\">Parsed Cookies:</h3><pre id=\"parsed-cookies\" class=\"whitespace-pre-wrap break-words\"></pre><input type=\"hidden\" id=\"cookies-input\" name=\"cookies\"></div></div></div><div class=\"mb-6\"><label for=\"outputDestination\" class=\"block text-sm font-medium text-gray-700 mb-2\">Output Destination</label> <select id=\"outputDestination\" name=\"outputDestination\" hx-get=\"?action=get-additional-output-settings\" hx-trigger=\"change\" hx-target=\"#additionalOutputSettings\" required class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500\"><option value=\"\">Choose an output destination</option> <option value=\"local\">Local</option> <option value=\"kafka\">Kafka</option></select></div><div class=\"mb-6\" id=\"additionalOutputSettings\" name=\"additionalOutputSettings\"></div><div class=\"mb-6\"><label class=\"text-base font-medium text-gray-900\">Deployment Time</label><p class=\"text-sm text-gray-500\">Choose when to deploy the spider</p><fieldset class=\"mt-4\"><div class=\"space-y-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-10\"><div class=\"flex items-center\"><input id=\"run-now\" name=\"deploymentTime\" type=\"radio\" value=\"now\" checked class=\"h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500\"> <label for=\"run-now\" class=\"ml-3 block text-sm font-medium text-gray-700\">Run Now</label></div><div class=\"flex items-center\"><input id=\"schedule\" name=\"deploymentTime\" type=\"radio\" value=\"schedule\" class=\"h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500\"> <label for=\"schedule\" class=\"ml-3 block text-sm font-medium text-gray-700\">Schedule Run</label></div></div></fieldset></div><div id=\"scheduleOptions\" class=\"mb-6 hidden\"><div class=\"space-y-6\"><div><label class=\"text-base font-medium text-gray-900\">Schedule Type</label><p class=\"text-sm text-gray-500\">Choose between simple or advanced scheduling</p><div class=\"mt-4 flex rounded-md shadow-sm\" role=\"group\" aria-label=\"Schedule Type\"><button type=\"button\" id=\"simpleSchedule\" class=\"px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 border border-indigo-300 rounded-l-lg hover:bg-indigo-200 focus:z-10 focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-200 focus:text-indigo-800\" aria-pressed=\"true\">Simple</button> <button type=\"button\" id=\"advancedSchedule\" class=\"px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-200 focus:text-indigo-800\">Advanced</button></div></div><div id=\"simpleScheduleOptions\"><label for=\"simpleFrequency\" class=\"block text-sm font-medium text-gray-700\">Frequency</label> <select id=\"simpleFrequency\" name=\"simpleFrequency\" class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500\"><option value=\"hourly\">Hourly</option> <option value=\"daily\">Daily</option> <option value=\"weekly\">Weekly</option> <option value=\"monthly\">Monthly</option></select></div><div id=\"advancedScheduleOptions\" class=\"hidden\"><div class=\"grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6\"><div class=\"sm:col-span-2\"><label for=\"minute\" class=\"block text-sm font-medium text-gray-700\">Minute</label> <select id=\"minute\" name=\"minute\" class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500\"><option value=\"*\">Every minute</option><script>\n                                                                for (let i = 0; i < 60; i++) {\n                                                                    document.write(`<option value=\"${i}\">${i.toString().padStart(2, '0')}</option>`);\n                                                                }\n                                                            </script></select></div><div class=\"sm:col-span-2\"><label for=\"hour\" class=\"block text-sm font-medium text-gray-700\">Hour</label> <select id=\"hour\" name=\"hour\" class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500\"><option value=\"*\">Every hour</option><script>\n                                                                for (let i = 0; i < 24; i++) {\n                                                                    document.write(`<option value=\"${i}\">${i.toString().padStart(2, '0')}</option>`);\n                                                                }\n                                                            </script></select></div><div class=\"sm:col-span-2\"><label for=\"dayOfMonth\" class=\"block text-sm font-medium text-gray-700\">Day of Month</label> <select id=\"dayOfMonth\" name=\"dayOfMonth\" class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500\"><option value=\"*\">Every day</option><script>\n                                                                for (let i = 1; i <= 31; i++) {\n                                                                    document.write(`<option value=\"${i}\">${i}</option>`);\n                                                                }\n                                                            </script></select></div><div class=\"sm:col-span-3\"><label for=\"month\" class=\"block text-sm font-medium text-gray-700\">Month</label> <select id=\"month\" name=\"month\" class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500\"><option value=\"*\">Every month</option> <option value=\"1\">January</option> <option value=\"2\">February</option> <option value=\"3\">March</option> <option value=\"4\">April</option> <option value=\"5\">May</option> <option value=\"6\">June</option> <option value=\"7\">July</option> <option value=\"8\">August</option> <option value=\"9\">September</option> <option value=\"10\">October</option> <option value=\"11\">November</option> <option value=\"12\">December</option></select></div><div class=\"sm:col-span-3\"><label for=\"dayOfWeek\" class=\"block text-sm font-medium text-gray-700\">Day of Week</label> <select id=\"dayOfWeek\" name=\"dayOfWeek\" class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500\"><option value=\"*\">Every day</option> <option value=\"0\">Sunday</option> <option value=\"1\">Monday</option> <option value=\"2\">Tuesday</option> <option value=\"3\">Wednesday</option> <option value=\"4\">Thursday</option> <option value=\"5\">Friday</option> <option value=\"6\">Saturday</option></select></div></div></div><div><label for=\"cronExpression\" class=\"block text-sm font-medium text-gray-700\">Generated Cron Expression</label><div class=\"mt-1 flex rounded-md shadow-sm\"><span class=\"inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm\">Cron:</span> <input type=\"text\" id=\"cronExpression\" name=\"cronExpression\" class=\"block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm\" readonly></div><p class=\"mt-2 text-sm text-gray-500\">This is the cron expression generated from your selections above.</p></div><div><label for=\"nextRunTime\" class=\"block text-sm font-medium text-gray-700\">Next Run Time</label><div class=\"mt-1\"><input type=\"text\" id=\"nextRunTime\" name=\"nextRunTime\" class=\"block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm\" readonly></div><p class=\"mt-2 text-sm text-gray-500\">This is when the spider will next run based on the current schedule.</p></div></div></div><div class=\"mb-6\"><label for=\"customSettings\" class=\"block text-sm font-medium text-gray-700 mb-2\">Additional Spider Custom Settings (JSON)</label> <textarea id=\"customSettings\" name=\"customSettings\" rows=\"4\" class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500\" placeholder=\"{&#34;DOWNLOAD_DELAY&#34;: 1, &#34;CONCURRENT_REQUESTS&#34;: 16}\"></textarea><p class=\"mt-1 text-sm text-gray-500\">Enter any additional settings in JSON format</p></div><div class=\"flex items-center justify-between\"><button id=\"submitButton\" type=\"submit\" class=\"bg-blue-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed\">Deploy Spider</button></div></form></div></div></div></div><script>\n\t\t\tdocument.body.addEventListener('htmx:beforeRequest', function(event) {\n\t\t\tif (event.target && event.target.id == \"deploySpiderForm\") {\n\t\t\t\tdocument.getElementById('submitButton').disabled = true;\n\t\t\t\tdocument.getElementById('submitButton').textContent = 'Submitting...';\n\t\t\t}\n\t\t\t});\n\t\t\tdocument.addEventListener('DOMContentLoaded', function() {\n\t\t\t\tconst outputDestination = document.getElementById('outputDestination');\n\t\t\t\tconst kafkaConfig = document.getElementById('kafkaConfig');\n\t\t\t\tconst deploymentTimeRadios = document.getElementsByName('deploymentTime');\n\t\t\t\tconst scheduleOptions = document.getElementById('scheduleOptions');\n\t\t\t\tconst simpleScheduleButton = document.getElementById('simpleSchedule');\n\t\t\t\tconst advancedScheduleButton = document.getElementById('advancedSchedule');\n\t\t\t\tconst simpleScheduleOptions = document.getElementById('simpleScheduleOptions');\n\t\t\t\tconst advancedScheduleOptions = document.getElementById('advancedScheduleOptions');\n\t\t\t\tconst simpleFrequency = document.getElementById('simpleFrequency');\n\t\t\t\tconst cronExpression = document.getElementById('cronExpression');\n\t\t\t\tconst nextRunTime = document.getElementById('nextRunTime');\n\t\t\t\tconst advancedInputs = ['minute', 'hour', 'dayOfMonth', 'month', 'dayOfWeek'];\n\n\t\t\t\toutputDestination.addEventListener('change', function() {\n\t\t\t\t\tkafkaConfig.classList.toggle('hidden', this.value !== 'kafka');\n\t\t\t\t});\n\n\t\t\t\tdeploymentTimeRadios.forEach(radio => {\n\t\t\t\t\tradio.addEventListener('change', function() {\n\t\t\t\t\t\tscheduleOptions.classList.toggle('hidden', this.id === 'run-now');\n\t\t\t\t\t\tupdateCronExpression();\n\t\t\t\t\t});\n\t\t\t\t});\n\n\t\t\t\tsimpleScheduleButton.addEventListener('click', function() {\n\t\t\t\t\tsimpleScheduleButton.classList.add('bg-indigo-100', 'text-indigo-700');\n\t\t\t\t\tsimpleScheduleButton.classList.remove('bg-white', 'text-gray-900');\n\t\t\t\t\tadvancedScheduleButton.classList.add('bg-white', 'text-gray-900');\n\t\t\t\t\tadvancedScheduleButton.classList.remove('bg-indigo-100', 'text-indigo-700');\n\t\t\t\t\tsimpleScheduleOptions.classList.remove('hidden');\n\t\t\t\t\tadvancedScheduleOptions.classList.add('hidden');\n\t\t\t\t\tupdateCronExpression();\n\t\t\t\t});\n\n\t\t\t\tadvancedScheduleButton.addEventListener('click', function() {\n\t\t\t\t\tadvancedScheduleButton.classList.add('bg-indigo-100', 'text-indigo-700');\n\t\t\t\t\tadvancedScheduleButton.classList.remove('bg-white', 'text-gray-900');\n\t\t\t\t\tsimpleScheduleButton.classList.add('bg-white', 'text-gray-900');\n\t\t\t\t\tsimpleScheduleButton.classList.remove('bg-indigo-100', 'text-indigo-700');\n\t\t\t\t\tadvancedScheduleOptions.classList.remove('hidden');\n\t\t\t\t\tsimpleScheduleOptions.classList.add('hidden');\n\t\t\t\t\tupdateCronExpression();\n\t\t\t\t});\n\n\t\t\t\tsimpleFrequency.addEventListener('change', updateCronExpression);\n\n\t\t\t\tadvancedInputs.forEach(inputId => {\n\t\t\t\t\tdocument.getElementById(inputId).addEventListener('change', updateCronExpression);\n\t\t\t\t});\n\n\t\t\t\tfunction updateCronExpression() {\n\t\t\t\t\tlet expression = '';\n\n\t\t\t\t\tif (document.getElementById('schedule').checked) {\n\t\t\t\t\t\tif (!advancedScheduleOptions.classList.contains('hidden')) {\n\t\t\t\t\t\t\texpression = advancedInputs.map(inputId => document.getElementById(inputId).value || '*').join(' ');\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tconst frequency = simpleFrequency.value;\n\t\t\t\t\t\t\tswitch (frequency) {\n\t\t\t\t\t\t\t\tcase 'hourly':\n\t\t\t\t\t\t\t\t\texpression = '0 * * * *';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase 'daily':\n\t\t\t\t\t\t\t\t\texpression = '0 0 * * *';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase 'weekly':\n\t\t\t\t\t\t\t\t\texpression = '0 0 * * 0';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase 'monthly':\n\t\t\t\t\t\t\t\t\texpression = '0 0 1 * *';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tdefault:\n\t\t\t\t\t\t\t\t\texpression = '* * * * *';\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\tcronExpression.value = expression;\n\t\t\t\t\t\tupdateNextRunTime(expression);\n\t\t\t\t\t} else {\n\t\t\t\t\t\tcronExpression.value = 'Run immediately';\n\t\t\t\t\t\tnextRunTime.value = 'Immediately';\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t\tfunction updateNextRunTime(cronExpression) {\n\t\t\t\t\tconst now = new Date();\n\t\t\t\t\tnow.setMinutes(now.getMinutes() + 5);\n\t\t\t\t\tnextRunTime.value = now.toLocaleString();\n\t\t\t\t}\n\n\t\t\t\tupdateCronExpression();\n\t\t\t});\n\t\t\tdocument.body.addEventListener('htmx:afterSwap', function(event) {\n\t\t\t\tif (event.target.id === \"proxy-list-continer\") {\n\t\t\t\t\tconst proxiesSelect = document.getElementById('proxies-list');\n\t\t\t\t\tconst selectedProxiesDiv = document.getElementById('selectedProxies');\n\t\t\t\t\tconst selectedProxiesInput = document.getElementById('selectedProxiesInput');\n\t\t\t\t\tfunction updateSelectedProxies() {\n\t\t\t\t\t\tselectedProxiesDiv.innerHTML = '';\n\t\t\t\t\t\tconst selectedValues = [];\n\t\t\t\t\t\tArray.from(proxiesSelect.selectedOptions).forEach(option => {\n\t\t\t\t\t\t\tconst badge = document.createElement('span');\n\t\t\t\t\t\t\tbadge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800';\n\t\t\t\t\t\t\tbadge.textContent = option.text;\n\n\t\t\t\t\t\t\tconst removeButton = document.createElement('button');\n\t\t\t\t\t\t\tremoveButton.className = 'ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none focus:bg-blue-500 focus:text-white';\n\t\t\t\t\t\t\tremoveButton.innerHTML = '&times;';\n\t\t\t\t\t\t\tremoveButton.setAttribute('aria-label', `Remove ${option.text}`);\n\t\t\t\t\t\t\tremoveButton.onclick = function() {\n\t\t\t\t\t\t\t\toption.selected = false;\n\t\t\t\t\t\t\t\tupdateSelectedProxies();\n\t\t\t\t\t\t\t};\n\n\t\t\t\t\t\t\tbadge.appendChild(removeButton);\n\t\t\t\t\t\t\tselectedProxiesDiv.appendChild(badge);\n\t\t\t\t\t\t\tselectedValues.push(option.value);\n\t\t\t\t\t\t});\n\n\t\t\t\t\t\tselectedProxiesInput.value = selectedValues.join(',');\n\t\t\t\t\t}\n\n\t\t\t\t\t\tproxiesSelect.addEventListener('change', updateSelectedProxies);\n\t\t\t\t\t}\n\t\t\t\telse if (event.target.id === \"additionalOutputSettings\") {\n\t\t\t\t\tconst dropdownToggle = document.getElementById('dropdown-toggle');\n\t\t\t\t\tconst dropdownContent = document.getElementById('dropdown-content');\n\t\t\t\t\tconst brokerSearch = document.getElementById('broker-search');\n\t\t\t\t\tconst selectAllBtn = document.getElementById('select-all-btn');\n\t\t\t\t\tconst selectedBrokers = document.getElementById('selectedBrokers');\n\t\t\t\t\tconst selectedCount = document.getElementById('selected-count');\n\t\t\t\t\tconst selectedBrokersInput = document.getElementById('selectedBrokersInput');\n\n\t\t\t\t\tfunction initBrokerList() {\n\t\t\t\t\t\tconst brokerList = document.getElementById('broker-list');\n\t\t\t\t\t\tbrokerList.addEventListener('change', updateSelectedBrokers);\n\t\t\t\t\t\tselectAllBtn.addEventListener('click', toggleSelectAll);\n\t\t\t\t\t\tdropdownToggle.addEventListener('click', toggleDropdown);\n\t\t\t\t\t\t// brokerSearch.addEventListener('input', filterBrokers);\n\t\t\t\t\t\tdocument.addEventListener('click', closeDropdownOutside);\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction toggleDropdown() {\n\t\t\t\t\t\tdropdownContent.classList.toggle('hidden');\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction closeDropdownOutside(event) {\n\t\t\t\t\t\tif (!dropdownToggle.contains(event.target) && !dropdownContent.contains(event.target)) {\n\t\t\t\t\t\t\tdropdownContent.classList.add('hidden');\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\n\t\t\t\t\t// function filterBrokers() {\n\t\t\t\t\t// \tconst searchTerm = brokerSearch.value.toLowerCase();\n\t\t\t\t\t// \tconst brokerList = document.getElementById('broker-list');\n\t\t\t\t\t// \tconst brokerItems = brokerList.querySelectorAll('li');\n\n\t\t\t\t\t// \tbrokerItems.forEach(item => {\n\t\t\t\t\t// \t\tconst brokerText = item.textContent.toLowerCase();\n\t\t\t\t\t// \t\titem.style.display = brokerText.includes(searchTerm) ? '' : 'none';\n\t\t\t\t\t// \t});\n\t\t\t\t\t// }\n\n\t\t\t\t\tfunction updateSelectedBrokers() {\n\t\t\t\t\t\tconst brokerList = document.getElementById('broker-list');\n\t\t\t\t\t\tconst selectedCheckboxes = brokerList.querySelectorAll('input[type=\"checkbox\"]:checked');\n\t\t\t\t\t\tconst selectedBrokersArray = Array.from(selectedCheckboxes).map(checkbox => checkbox.value);\n\t\t\t\t\t\t\n\t\t\t\t\t\tupdateSelectedCount(selectedBrokersArray.length);\n\t\t\t\t\t\tupdateSelectAllButton();\n\t\t\t\t\t\tupdateSelectedBrokersUI(selectedBrokersArray);\n\t\t\t\t\t\tupdateHiddenInput(selectedBrokersArray);\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction updateSelectedBrokersUI(selectedBrokersArray) {\n\t\t\t\t\t\tselectedBrokers.innerHTML = '';\n\n\t\t\t\t\t\tselectedBrokersArray.forEach(broker => {\n\t\t\t\t\t\t\tconst badge = document.createElement('span');\n\t\t\t\t\t\t\tbadge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800';\n\t\t\t\t\t\t\tbadge.textContent = broker;\n\n\t\t\t\t\t\t\tconst removeButton = document.createElement('button');\n\t\t\t\t\t\t\tremoveButton.className = 'ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none focus:bg-blue-500 focus:text-white';\n\t\t\t\t\t\t\tremoveButton.innerHTML = '&times;';\n\t\t\t\t\t\t\tremoveButton.setAttribute('aria-label', `Remove ${broker}`);\n\t\t\t\t\t\t\tremoveButton.onclick = function() {\n\t\t\t\t\t\t\t\tremoveBroker(broker);\n\t\t\t\t\t\t\t};\n\n\t\t\t\t\t\t\tbadge.appendChild(removeButton);\n\t\t\t\t\t\t\tselectedBrokers.appendChild(badge);\n\t\t\t\t\t\t});\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction removeBroker(broker) {\n\t\t\t\t\t\tconst brokerList = document.getElementById('broker-list');\n\t\t\t\t\t\tconst checkbox = brokerList.querySelector(`input[value=\"${broker}\"]`);\n\t\t\t\t\t\tif (checkbox) {\n\t\t\t\t\t\t\tcheckbox.checked = false;\n\t\t\t\t\t\t\tupdateSelectedBrokers();\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction updateHiddenInput(selectedBrokersArray) {\n\t\t\t\t\t\tselectedBrokersInput.value = selectedBrokersArray.join(',');\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction toggleSelectAll() {\n\t\t\t\t\t\tconst brokerList = document.getElementById('broker-list');\n\t\t\t\t\t\tconsole.log(brokerList)\n\t\t\t\t\t\tconst checkboxes = brokerList.querySelectorAll('input[type=\"checkbox\"]');\n\t\t\t\t\t\tconst allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);\n\n\t\t\t\t\t\tcheckboxes.forEach(checkbox => {\n\t\t\t\t\t\t\tcheckbox.checked = !allChecked;\n\t\t\t\t\t\t});\n\n\t\t\t\t\t\tupdateSelectedBrokers();\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction updateSelectAllButton() {\n\t\t\t\t\t\tconst brokerList = document.getElementById('broker-list');\n\t\t\t\t\t\tconst checkboxes = brokerList.querySelectorAll('input[type=\"checkbox\"]');\n\t\t\t\t\t\tconst allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);\n\n\t\t\t\t\t\tselectAllBtn.textContent = allChecked ? 'Deselect All' : 'Select All';\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction updateSelectedCount(count) {\n\t\t\t\t\t\tselectedCount.textContent = count > 0 ? `${count} broker(s) selected` : 'Select Kafka Brokers';\n\t\t\t\t\t}\n\n\t\t\t\t\tinitBrokerList();\n\t\t\t\t}\n\t\t\t});\n\t\t</script>")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 14)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -296,17 +296,17 @@ func ProxiesUI(proxies []*models.Proxy) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(proxies) == 0 {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<select id=\"proxies-list\" required multiple class=\"block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500\"></select><div><div class=\"p-4 rounded-md bg-yellow-100 text-yellow-800\"><p class=\"text-sm font-medium\">No proxies available at the moment.</p><p class=\"mt-1 text-xs\">Please check the <a href=\"/proxies\" class=\"underline font-medium hover:text-yellow-900\">proxy status page</a> for available proxy information.</p></div></div>")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 15)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<select id=\"proxies-list\" required multiple class=\"block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500\">")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 16)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, proxy := range proxies {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<option value=\"")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 17)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -319,7 +319,7 @@ func ProxiesUI(proxies []*models.Proxy) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 18)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -332,12 +332,12 @@ func ProxiesUI(proxies []*models.Proxy) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option>")
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 19)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</select><p class=\"text-xs text-gray-500\">Hold Ctrl (Windows) or Command (Mac) to select multiple proxies</p>")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 20)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -368,13 +368,13 @@ func ConfigListUI(configs []*types.ConfigDetail) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(configs) == 0 {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<option value=\"\">Choose a configuration</option> ")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 21)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
 		for _, config := range configs {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<option value=\"")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 22)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -387,7 +387,7 @@ func ConfigListUI(configs []*types.ConfigDetail) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 23)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -400,7 +400,7 @@ func ConfigListUI(configs []*types.ConfigDetail) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option>")
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 24)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -430,7 +430,7 @@ func BrokerUI(broker *models.KafkaBroker) templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<li class=\"px-3 py-2 hover:bg-gray-100\"><label class=\"flex items-center space-x-3\"><input type=\"checkbox\" class=\"form-checkbox h-5 w-5 text-blue-600\" value=\"")
+		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 25)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -443,7 +443,7 @@ func BrokerUI(broker *models.KafkaBroker) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <span>")
+		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 26)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -456,7 +456,7 @@ func BrokerUI(broker *models.KafkaBroker) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" | ")
+		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 27)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -469,7 +469,7 @@ func BrokerUI(broker *models.KafkaBroker) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(":")
+		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 28)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -482,7 +482,7 @@ func BrokerUI(broker *models.KafkaBroker) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></label></li>")
+		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 29)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -542,7 +542,7 @@ func KafkaSettingsUI(brokers []*models.KafkaBroker) templ.Component {
 			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"kafkaConfig\" class=\"mb-6 \"><h3 class=\"text-lg font-medium text-gray-700 mb-4\">Kafka Configuration</h3><div class=\"grid grid-cols-1 lg:grid-cols-2 gap-6\"><div class=\"relative\"><label for=\"broker-dropdown\" class=\"block text-sm font-medium text-gray-700 mb-2\">Kafka Brokers</label><div id=\"broker-dropdown\" class=\"relative\"><button id=\"dropdown-toggle\" type=\"button\" class=\"bg-white w-full flex items-center justify-between rounded-md border border-gray-300 px-4 py-2 text-left text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500\"><span id=\"selected-count\">Select Kafka Brokers</span> <svg class=\"h-5 w-5 text-gray-400\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"currentColor\"><path fill-rule=\"evenodd\" d=\"M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z\" clip-rule=\"evenodd\"></path></svg></button><div id=\"dropdown-content\" class=\"hidden absolute left-0 right-0 mt-2 rounded-md bg-white shadow-lg z-10\"><div class=\"p-2\"><input type=\"text\" placeholder=\"Search brokers...\" hx-get=\"?action=query-broker\" hx-trigger=\"keyup changed delay:500ms, focus\" hx-target=\"#broker-list\" name=\"q\" class=\"w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\" id=\"broker-search\"></div><div class=\"px-2 py-1 border-b\"><button type=\"button\" id=\"select-all-btn\" class=\"w-full px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\">Select All</button></div><div class=\"max-h-60 overflow-y-auto\"><ul class=\"py-1\" id=\"broker-list\">")
+		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 30)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -552,7 +552,7 @@ func KafkaSettingsUI(brokers []*models.KafkaBroker) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ul></div></div><div id=\"selectedBrokers\" class=\"mt-2 flex flex-wrap gap-2\"></div><input type=\"hidden\" id=\"selectedBrokersInput\" name=\"selectedBrokers\" value=\"\"></div></div><div><label for=\"kafka-topics\" class=\"block text-sm font-medium text-gray-700 mb-2\">Kafka Topics</label> <input name=\"kafkaTopic\" id=\"kafkaTopic\" class=\"w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500\"></div></div></div>")
+		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 31)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

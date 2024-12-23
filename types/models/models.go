@@ -17,7 +17,7 @@ type Config struct {
 	Domain         string          `gorm:"type:varchar(255);not null" json:"domain"`
 	DomainProtocol string          `gorm:"type:varchar(10);default:'http';not null" json:"domain_protocol"`
 	Type           string          `gorm:"type:varchar(12);not null" json:"type"`
-	Name           string          `gorm:"type:varchar(255);not null;unique" json:"name"`
+	Name           string          `gorm:"type:varchar(255);not null" json:"name"`
 	Description    string          `gorm:"type:text" json:"description"`
 	ConfigVersion  int             `gorm:"default:1" json:"config_version"`
 	Data           json.RawMessage `gorm:"type:bytea" json:"data"`
@@ -39,7 +39,7 @@ type ConfigHistory struct {
 }
 
 type TempVersion struct {
-	ID          uuid.UUID       `gorm:"type:uuid;primaryKey" json:"id"`
+	ID          uuid.UUID       `gorm:"type:uuid;primaryKey;unique" json:"id"`
 	BaseURL     string          `gorm:"type:varchar(255);not null" json:"base_url"`
 	DashboardID uint            `gorm:"not null" json:"dashboard_id"`
 	ConfigsID   uuid.UUID       `gorm:"type:uuid;not null" json:"configs_id"`
@@ -94,7 +94,6 @@ type KafkaBroker struct {
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 	BrokerID         uuid.UUID `gorm:"type:uuid;primaryKey" json:"broker_id"`
-	BrokerName       string    `gorm:"size:255;not null" json:"broker_name"`
 	BrokerGroup      string    `gorm:"size:255;not null" json:"broker_group"`
 	Host             string    `gorm:"size:255;not null" json:"host"`
 	Port             string    `gorm:"size:10;not null" json:"port"`
@@ -108,4 +107,12 @@ type Timeline struct {
 	Message   string         `gorm:"type:text;not null" json:"message"`
 	Context   string         `gorm:"size:255;not null" json:"context"`
 	Status    TimelineStatus `gorm:"type:varchar(10);not null" json:"status"`
+}
+
+type CombinedVersion struct {
+	DashboardID      string `gorm:"primaryKey" json:"dashboard_id"`
+	ConfigName       string `gorm:"size:255;not null" json:"config_name"`
+	DashboardVersion string `gorm:"size:255;not null" json:"dashboard_version"`
+	ConfigVersion    string `gorm:"size:255;not null" json:"config_version"`
+	FullVersion      string `gorm:"size:255;not null" json:"full_version"`
 }

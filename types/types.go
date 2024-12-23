@@ -159,12 +159,17 @@ type Cron struct {
 
 type Database interface {
 	CreateConfig(config *models.Config) error
+	IsConfigExists(configName string) (bool, error)
+	UpdateConfigByName(configName string, config *models.Config) error
+	GetConfigByName(configName string) (*models.Config, error)
 	GetConfigByID(id string) (*models.Config, error)
 	GetConfigsIDByDomain(domain string) ([]string, error)
 	GetConfigNameAndIDByDomain(domain string) ([]*ConfigDetail, error)
 	GetDomains() ([]string, error)
 	GetConfigs() ([]*models.Config, error)
 	GetDomainsWithSchema() ([]string, error)
+
+	GetCombinedVersion(id string) (*models.CombinedVersion, error)
 
 	GetProxies() ([]*models.Proxy, error)
 	GetActiveProxies() ([]*models.Proxy, error)

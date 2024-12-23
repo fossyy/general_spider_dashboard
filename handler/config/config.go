@@ -29,6 +29,31 @@ func GET(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	if r.Header.Get("hx-request") == "true" {
+		switch r.URL.Query().Get("action") {
+		case "get-configs":
+			configs, err := app.Server.Database.GetConfigs()
+			if err != nil {
+				err := app.Server.Response.SendMessageToast(w, &app.BackendResponse{
+					Message: "Error getting configs : " + err.Error(),
+					Type:    app.Error,
+					Timeout: 10000,
+				})
+				if err != nil {
+					app.Server.Logger.Println(err.Error())
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				app.Server.Logger.Println(err.Error())
+				return
+			}
+			configView.ConfigsTable(configs).Render(r.Context(), w)
+			return
+		default:
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+	}
 	configView.Main("config maker", domains).Render(r.Context(), w)
 }
 
@@ -107,17 +132,41 @@ func POST(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
-
-			err = app.Server.Database.CreateConfig(&models.Config{
-				ID:             configID,
-				Domain:         parse.Host,
-				DomainProtocol: parse.Scheme,
-				Name:           name,
-				Type:           configType,
-				Description:    description,
-				Data:           []byte(jsonData),
-			})
+			exist, err := app.Server.Database.IsConfigExists(name)
 			if err != nil {
+				app.Server.Logger.Println(err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			if !exist {
+				err = app.Server.Database.CreateConfig(&models.Config{
+					ID:             configID,
+					Domain:         parse.Host,
+					DomainProtocol: parse.Scheme,
+					Name:           name,
+					Type:           configType,
+					Description:    description,
+					Data:           []byte(jsonData),
+				})
+			} else {
+				config, err := app.Server.Database.GetConfigByName(name)
+				if err != nil {
+					app.Server.Logger.Println(err.Error())
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				config.Data = []byte(jsonData)
+				err = app.Server.Database.UpdateConfigByName(name, config)
+				if err != nil {
+					app.Server.Logger.Println(err.Error())
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+			}
+
+			if err != nil {
+				app.Server.Logger.Println(err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}

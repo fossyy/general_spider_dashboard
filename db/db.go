@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"general_spider_controll_panel/types"
 	"general_spider_controll_panel/types/models"
@@ -11,6 +12,7 @@ import (
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -90,6 +92,13 @@ func NewPostgresDB(ctx context.Context, username, password, host, port, dbName s
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
 	}
+
+	trigger, err := os.ReadFile("db/trigger.sql")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read trigger.sql: %s", err.Error())
+	}
+
+	err = DB.Exec(string(trigger)).Error
 	return &postgresDB{DB}, nil
 }
 
@@ -97,11 +106,55 @@ func (db *postgresDB) CreateConfig(config *models.Config) error {
 	return db.Create(config).Error
 }
 
+func (db *postgresDB) IsConfigExists(configName string) (bool, error) {
+	var count int64
+	err := db.Model(&models.Config{}).Where(&models.Config{Name: configName}).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (db *postgresDB) UpdateConfigByName(configName string, config *models.Config) error {
+	return db.Model(&models.Config{}).Where(&models.Config{Name: configName}).Updates(config).Error
+}
+
+func (db *postgresDB) GetConfigByName(configName string) (*models.Config, error) {
+	var config models.Config
+	err := db.Model(&models.Config{}).Where(&models.Config{Name: configName}).First(&config).Error
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
 func (db *postgresDB) GetConfigByID(id string) (*models.Config, error) {
 	var config models.Config
 	if err := db.Where("id = ?", id).First(&config).Error; err != nil {
 		return nil, err
 	}
+	return &config, nil
+}
+
+func (db *postgresDB) GetCombinedVersion(id string) (*models.CombinedVersion, error) {
+	var name string
+
+	if err := db.Table("configs").Select("name").Where("id = ?", id).Take(&name).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("config with ID %s not found: %w", id, err)
+		}
+		return nil, fmt.Errorf("failed to fetch config name: %w", err)
+	}
+
+	var config models.CombinedVersion
+
+	if err := db.Table("combined_version").Where("config_name = ?", name).Take(&config).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("combined version for config %s not found: %w", name, err)
+		}
+		return nil, fmt.Errorf("failed to fetch combined version: %w", err)
+	}
+
 	return &config, nil
 }
 

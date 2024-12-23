@@ -3,6 +3,8 @@ let baseUrl = '';
 let draggedElement = null;
 let originalParent = null;
 let originalNextSibling = null;
+let version = '1.0';
+let hasChanged = false;
 
 function renderConfigs() {
     const container = document.getElementById('config-container');
@@ -41,7 +43,6 @@ function createConfigElement(config) {
                 <select class="tag-select p-1 border border-gray-300 rounded-md ${['_loop', '@section'].includes(config.type) ? '' : 'hidden'}">
                     <option value="">Select tag</option>
                     <option value="root" ${config.tag === 'root' ? 'selected' : ''}>root</option>
-                    <option value="auto" ${config.tag === 'auto' ? 'selected' : ''}>auto</option>
                     <option value="global" ${config.tag === 'global' ? 'selected' : ''}>global</option>
                     <option value="parent" ${config.tag === 'parent' ? 'selected' : ''}>parent</option>
                 </select>
@@ -147,6 +148,7 @@ function updateConfig(element, field, value) {
     }
     rebuildConfigsFromDOM();
     updateJsonPreview();
+    incrementVersion();
     saveToLocalStorage();
 }
 
@@ -195,6 +197,7 @@ function addChild(parentId) {
         childrenContainer.insertBefore(newElement, childrenContainer.firstChild);
         rebuildConfigsFromDOM();
         updateJsonPreview();
+        incrementVersion();
         saveToLocalStorage();
     }
 }
@@ -205,6 +208,7 @@ function removeConfig(id) {
         element.remove();
         rebuildConfigsFromDOM();
         updateJsonPreview();
+        incrementVersion();
         saveToLocalStorage();
     }
 }
@@ -270,6 +274,7 @@ function drop(e, droppedOnId) {
     draggedElement = null;
     rebuildConfigsFromDOM();
     updateJsonPreview();
+    incrementVersion();
     saveToLocalStorage();
 }
 
@@ -356,16 +361,14 @@ function getSections() {
     return sections;
 }
 
-let version = '1.0';
-
 function incrementVersion() {
-    const [major, minor] = version.split('.').map(Number);
-    version = `${major}.${minor + 1}`;
-    updateVersionDisplay();
-}
-
-function updateVersionDisplay() {
-    document.getElementById('version-display').textContent = `Version: ${version}`;
+    if (!hasChanged) {
+        const [major, minor] = version.split('.').map(Number);
+        version = `${major}.${minor + 1}`;
+        document.getElementById('version-display').textContent = `Version: ${version}`;
+        hasChanged = true;
+        saveToLocalStorage();
+    }
 }
 
 function updateJsonPreview() {
@@ -377,13 +380,14 @@ function updateJsonPreview() {
     document.getElementById('json-preview').textContent = JSON.stringify(fullConfig, null, 2);
     document.getElementById('json-data').value = JSON.stringify(fullConfig, null, 2);
     document.getElementById('preview-config').value = JSON.stringify(fullConfig, null, 2)
-    incrementVersion()
 }
 
 function saveToLocalStorage() {
     localStorage.setItem('configDashboardState', JSON.stringify({
         configs: configs,
-        baseUrl: baseUrl
+        baseUrl: baseUrl,
+        version: version,
+        hasChanged: hasChanged
     }));
 }
 
@@ -393,7 +397,10 @@ function loadFromLocalStorage() {
         const parsedState = JSON.parse(savedState);
         configs = parsedState.configs;
         baseUrl = parsedState.baseUrl;
+        version = parsedState.version || '1.0';
+        hasChanged = parsedState.hasChanged || false;
         document.getElementById('base-url').value = baseUrl;
+        document.getElementById('version-display').textContent = `Version: ${version}`;
         renderConfigs();
     }
 }
@@ -404,6 +411,7 @@ function addNewConfig() {
     document.getElementById('config-container').appendChild(newElement);
     rebuildConfigsFromDOM();
     updateJsonPreview();
+    incrementVersion();
     saveToLocalStorage();
 }
 
@@ -434,6 +442,9 @@ function loadConfig(e) {
                 baseUrl = loadedConfig.base_url || '';
                 document.getElementById('base-url').value = baseUrl;
                 configs = convertStructureToConfigs(loadedConfig.structure);
+                version = '1.0';
+                hasChanged = false;
+                document.getElementById('version-display').textContent = `Version: ${version}`;
                 renderConfigs();
             } catch (error) {
                 console.error('Error parsing JSON:', error);
@@ -447,16 +458,28 @@ function loadConfig(e) {
 function convertStructureToConfigs(structure) {
     const result = [];
     for (const [key, value] of Object.entries(structure)) {
-        if (typeof value === 'object' && 'value' in value && 'optional' in value && 'type' in value) {
-            result.push({
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                type: 'xpath',
-                key: key,
-                value: value.value,
-                optional: value.optional,
-                dataType: value.type,
-                children: []
-            });
+        if (typeof value === 'object' && 'value' in value && 'type' in value) {
+            if (value.type === 'constraint') {
+                result.push({
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                    type: 'constraint',
+                    key: key,
+                    value: value.value,
+                    optional: false,
+                    dataType: 'str',
+                    children: []
+                });
+            } else if ('optional' in value) {
+                result.push({
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                    type: 'xpath',
+                    key: key,
+                    value: value.value,
+                    optional: value.optional,
+                    dataType: value.type,
+                    children: []
+                });
+            }
         } else if (key === '_pagination') {
             result.push({
                 id: Date.now().toString() + Math.random().toString(36).substr(2, 9),

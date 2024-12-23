@@ -80,6 +80,18 @@ services:
     networks:
       - scrapyd
 
+  torproxy-2:
+    image: dperson/torproxy
+    environment:
+      - BW=100
+    ports:
+      - "8119:8118"
+    #    deploy:
+    #      mode: replicated
+    #      replicas: 5
+    restart: always
+    networks:
+      - scrapyd
 volumes:
   scrapyd-volume:
   postgres:
