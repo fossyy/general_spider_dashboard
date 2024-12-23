@@ -139,13 +139,17 @@ templ Main(title string, urls []string) {
 						<label for="description" class="block font-semibold mb-1">Description (Opsional)</label>
 						<textarea id="description" name="description" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="What is this config about ?"></textarea>
 					</div>
+					<input id="load-config" type="file" accept=".json" style="display: none" />
 					<div class="flex gap-4 mb-4">
 						<button type="button" id="add-config" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
 							Add Field
 						</button>
-						<button type="button" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 cursor-pointer">
+						<button
+							type="button"
+							id="load-disk-btn"
+							class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 cursor-pointer"
+						>
 							Load from Disk
-							<input id="load-config" type="file" accept=".json" class="hidden"/>
 						</button>
 						<button
 							type="button"
@@ -212,6 +216,10 @@ templ Main(title string, urls []string) {
                 const preContent = document.getElementById('json-preview').innerText;
                 document.getElementById('json-data').value = preContent;
             });
+			document.getElementById('load-disk-btn').addEventListener('click', function() {
+				const fileInput = document.getElementById('load-config');
+				fileInput.click();
+			});
     </script>
 	}
 }
