@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +13,6 @@ import (
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
 	"net/url"
-	"os"
 	"strings"
 )
 
@@ -26,6 +26,9 @@ const (
 	DisableSSL SSLMode = "disable"
 	EnableSSL  SSLMode = "enable"
 )
+
+//go:embed trigger.sql
+var trigger []byte
 
 func NewPostgresDB(ctx context.Context, username, password, host, port, dbName string, mode SSLMode) (types.Database, error) {
 	var err error
@@ -91,11 +94,6 @@ func NewPostgresDB(ctx context.Context, username, password, host, port, dbName s
 	err = DB.WithContext(ctx).AutoMigrate(&models.DashboardConfig{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %s", err.Error())
-	}
-
-	trigger, err := os.ReadFile("db/trigger.sql")
-	if err != nil {
-		return nil, fmt.Errorf("failed to read trigger.sql: %s", err.Error())
 	}
 
 	err = DB.Exec(string(trigger)).Error
