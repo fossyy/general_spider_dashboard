@@ -6,7 +6,7 @@ require (
 	github.com/IBM/sarama v1.43.3
 	github.com/a-h/templ v0.2.793
 	github.com/briandowns/spinner v1.23.1
-	github.com/go-co-op/gocron/v2 v2.13.0
+	github.com/go-co-op/gocron/v2 v2.14.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
