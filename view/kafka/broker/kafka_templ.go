@@ -183,8 +183,8 @@ func Main(title string, brokers []*models.KafkaBroker) templ.Component {
 
 func showDeletionModal(group string) templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_showDeletionModal_3dc2`,
-		Function: `function __templ_showDeletionModal_3dc2(group){const modal = document.getElementById('deleteModal');
+		Name: `__templ_showDeletionModal_24cd`,
+		Function: `function __templ_showDeletionModal_24cd(group){const modal = document.getElementById('deleteModal');
     const modalContent = modal.querySelector('div');
     const confirmDelete = document.getElementById('confirmDelete');
 	const brokerGroup = document.getElementById('brokerGroup')
@@ -207,15 +207,15 @@ func showDeletionModal(group string) templ.ComponentScript {
         modalContent.classList.remove('-translate-y-full', 'scale-95', 'opacity-0');
     }, 50);
 }`,
-		Call:       templ.SafeScript(`__templ_showDeletionModal_3dc2`, group),
-		CallInline: templ.SafeScriptInline(`__templ_showDeletionModal_3dc2`, group),
+		Call:       templ.SafeScript(`__templ_showDeletionModal_24cd`, group),
+		CallInline: templ.SafeScriptInline(`__templ_showDeletionModal_24cd`, group),
 	}
 }
 
 func hideDeletionModal() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_hideDeletionModal_c0ab`,
-		Function: `function __templ_hideDeletionModal_c0ab(){const modal = document.getElementById('deleteModal');
+		Name: `__templ_hideDeletionModal_0159`,
+		Function: `function __templ_hideDeletionModal_0159(){const modal = document.getElementById('deleteModal');
     const modalContent = modal.querySelector('div');
 
     modal.classList.add('opacity-0');
@@ -224,8 +224,8 @@ func hideDeletionModal() templ.ComponentScript {
         modal.classList.add('hidden');
     }, 300);
 }`,
-		Call:       templ.SafeScript(`__templ_hideDeletionModal_c0ab`),
-		CallInline: templ.SafeScriptInline(`__templ_hideDeletionModal_c0ab`),
+		Call:       templ.SafeScript(`__templ_hideDeletionModal_0159`),
+		CallInline: templ.SafeScriptInline(`__templ_hideDeletionModal_0159`),
 	}
 }
 

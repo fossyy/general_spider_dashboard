@@ -176,8 +176,8 @@ func Main(title string, domains []string) templ.Component {
 
 func showDeletionModal() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_showDeletionModal_eb47`,
-		Function: `function __templ_showDeletionModal_eb47(){const modal = document.getElementById('parseModal');
+		Name: `__templ_showDeletionModal_40bc`,
+		Function: `function __templ_showDeletionModal_40bc(){const modal = document.getElementById('parseModal');
     const modalContent = modal.querySelector('div');
     const confirmDelete = document.getElementById('confirmDelete');
     const proxyToDelete = document.getElementById('proxyToDelete');
@@ -188,15 +188,15 @@ func showDeletionModal() templ.ComponentScript {
         modalContent.classList.remove('-translate-y-full', 'scale-95', 'opacity-0');
     }, 50);
 }`,
-		Call:       templ.SafeScript(`__templ_showDeletionModal_eb47`),
-		CallInline: templ.SafeScriptInline(`__templ_showDeletionModal_eb47`),
+		Call:       templ.SafeScript(`__templ_showDeletionModal_40bc`),
+		CallInline: templ.SafeScriptInline(`__templ_showDeletionModal_40bc`),
 	}
 }
 
 func parseHeader() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_parseHeader_10cc`,
-		Function: `function __templ_parseHeader_10cc(){const parsedCookies = document.getElementById('parsed-cookies');
+		Name: `__templ_parseHeader_feee`,
+		Function: `function __templ_parseHeader_feee(){const parsedCookies = document.getElementById('parsed-cookies');
 	const headerInput = document.getElementById('header-input');
 	const cookiesInput = document.getElementById('cookies-input')
 
@@ -233,15 +233,15 @@ func parseHeader() templ.ComponentScript {
 	}, 300);
 
 }`,
-		Call:       templ.SafeScript(`__templ_parseHeader_10cc`),
-		CallInline: templ.SafeScriptInline(`__templ_parseHeader_10cc`),
+		Call:       templ.SafeScript(`__templ_parseHeader_feee`),
+		CallInline: templ.SafeScriptInline(`__templ_parseHeader_feee`),
 	}
 }
 
 func parseJson() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_parseJson_d2d8`,
-		Function: `function __templ_parseJson_d2d8(){const parsedCookies = document.getElementById('parsed-cookies');
+		Name: `__templ_parseJson_6878`,
+		Function: `function __templ_parseJson_6878(){const parsedCookies = document.getElementById('parsed-cookies');
 	const cookiesInput = document.getElementById('cookies-input')
 	try {
         const jsonCookies = JSON.parse(document.getElementById("json-input").value)
@@ -252,15 +252,15 @@ func parseJson() templ.ComponentScript {
         showToast("Invalid JSON input : "+error, 5000, 'error');
     }
 }`,
-		Call:       templ.SafeScript(`__templ_parseJson_d2d8`),
-		CallInline: templ.SafeScriptInline(`__templ_parseJson_d2d8`),
+		Call:       templ.SafeScript(`__templ_parseJson_6878`),
+		CallInline: templ.SafeScriptInline(`__templ_parseJson_6878`),
 	}
 }
 
 func hideDeletionModal() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_hideDeletionModal_e541`,
-		Function: `function __templ_hideDeletionModal_e541(){const modal = document.getElementById('parseModal');
+		Name: `__templ_hideDeletionModal_5223`,
+		Function: `function __templ_hideDeletionModal_5223(){const modal = document.getElementById('parseModal');
     const modalContent = modal.querySelector('div');
 
     modal.classList.add('opacity-0');
@@ -269,8 +269,8 @@ func hideDeletionModal() templ.ComponentScript {
         modal.classList.add('hidden');
     }, 300);;
 }`,
-		Call:       templ.SafeScript(`__templ_hideDeletionModal_e541`),
-		CallInline: templ.SafeScriptInline(`__templ_hideDeletionModal_e541`),
+		Call:       templ.SafeScript(`__templ_hideDeletionModal_5223`),
+		CallInline: templ.SafeScriptInline(`__templ_hideDeletionModal_5223`),
 	}
 }
 
