@@ -106,8 +106,8 @@ func Main(title string) templ.Component {
 
 func showDeletionModal(address, id string) templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_showDeletionModal_ccb3`,
-		Function: `function __templ_showDeletionModal_ccb3(address, id){const modal = document.getElementById('deleteModal');
+		Name: `__templ_showDeletionModal_c2dc`,
+		Function: `function __templ_showDeletionModal_c2dc(address, id){const modal = document.getElementById('deleteModal');
     const modalContent = modal.querySelector('div');
     const confirmDelete = document.getElementById('confirmDelete');
     const proxyToDelete = document.getElementById('proxyToDelete');
@@ -122,15 +122,15 @@ func showDeletionModal(address, id string) templ.ComponentScript {
     }, 50);
     proxyToDelete.textContent = address;
 }`,
-		Call:       templ.SafeScript(`__templ_showDeletionModal_ccb3`, address, id),
-		CallInline: templ.SafeScriptInline(`__templ_showDeletionModal_ccb3`, address, id),
+		Call:       templ.SafeScript(`__templ_showDeletionModal_c2dc`, address, id),
+		CallInline: templ.SafeScriptInline(`__templ_showDeletionModal_c2dc`, address, id),
 	}
 }
 
 func hideDeletionModal() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_hideDeletionModal_c0ab`,
-		Function: `function __templ_hideDeletionModal_c0ab(){const modal = document.getElementById('deleteModal');
+		Name: `__templ_hideDeletionModal_0159`,
+		Function: `function __templ_hideDeletionModal_0159(){const modal = document.getElementById('deleteModal');
     const modalContent = modal.querySelector('div');
 
     modal.classList.add('opacity-0');
@@ -139,8 +139,8 @@ func hideDeletionModal() templ.ComponentScript {
         modal.classList.add('hidden');
     }, 300);
 }`,
-		Call:       templ.SafeScript(`__templ_hideDeletionModal_c0ab`),
-		CallInline: templ.SafeScriptInline(`__templ_hideDeletionModal_c0ab`),
+		Call:       templ.SafeScript(`__templ_hideDeletionModal_0159`),
+		CallInline: templ.SafeScriptInline(`__templ_hideDeletionModal_0159`),
 	}
 }
 

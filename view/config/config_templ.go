@@ -275,8 +275,8 @@ func ConfigsTable(configs []*models.Config) templ.Component {
 
 func showPreviewModal() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_showPreviewModal_ebf4`,
-		Function: `function __templ_showPreviewModal_ebf4(){const modal = document.getElementById('modal');
+		Name: `__templ_showPreviewModal_7122`,
+		Function: `function __templ_showPreviewModal_7122(){const modal = document.getElementById('modal');
 	const sectionSelect = document.getElementById('section-select');
 
     modal.classList.remove('hidden');
@@ -298,60 +298,60 @@ func showPreviewModal() templ.ComponentScript {
         modal.classList.remove('opacity-0');
     }, 50);
 }`,
-		Call:       templ.SafeScript(`__templ_showPreviewModal_ebf4`),
-		CallInline: templ.SafeScriptInline(`__templ_showPreviewModal_ebf4`),
+		Call:       templ.SafeScript(`__templ_showPreviewModal_7122`),
+		CallInline: templ.SafeScriptInline(`__templ_showPreviewModal_7122`),
 	}
 }
 
 func hidePreviewModal() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_hidePreviewModal_5d19`,
-		Function: `function __templ_hidePreviewModal_5d19(){const modal = document.getElementById('modal');
+		Name: `__templ_hidePreviewModal_4171`,
+		Function: `function __templ_hidePreviewModal_4171(){const modal = document.getElementById('modal');
 
     modal.classList.add('opacity-0');
     setTimeout(() => {
         modal.classList.add('hidden');
     }, 300);
 }`,
-		Call:       templ.SafeScript(`__templ_hidePreviewModal_5d19`),
-		CallInline: templ.SafeScriptInline(`__templ_hidePreviewModal_5d19`),
+		Call:       templ.SafeScript(`__templ_hidePreviewModal_4171`),
+		CallInline: templ.SafeScriptInline(`__templ_hidePreviewModal_4171`),
 	}
 }
 
 func showDatabaseModal() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_showDatabaseModal_6198`,
-		Function: `function __templ_showDatabaseModal_6198(){const modal = document.getElementById('databaseModal');
+		Name: `__templ_showDatabaseModal_fbd3`,
+		Function: `function __templ_showDatabaseModal_fbd3(){const modal = document.getElementById('databaseModal');
 
     modal.classList.remove('hidden');
     setTimeout(() => {
         modal.classList.remove('opacity-0');
     }, 50);
 }`,
-		Call:       templ.SafeScript(`__templ_showDatabaseModal_6198`),
-		CallInline: templ.SafeScriptInline(`__templ_showDatabaseModal_6198`),
+		Call:       templ.SafeScript(`__templ_showDatabaseModal_fbd3`),
+		CallInline: templ.SafeScriptInline(`__templ_showDatabaseModal_fbd3`),
 	}
 }
 
 func hideDatabaseModal() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_hideDatabaseModal_8a89`,
-		Function: `function __templ_hideDatabaseModal_8a89(){const modal = document.getElementById('databaseModal');
+		Name: `__templ_hideDatabaseModal_c438`,
+		Function: `function __templ_hideDatabaseModal_c438(){const modal = document.getElementById('databaseModal');
 
     modal.classList.add('opacity-0');
     setTimeout(() => {
         modal.classList.add('hidden');
     }, 300);
 }`,
-		Call:       templ.SafeScript(`__templ_hideDatabaseModal_8a89`),
-		CallInline: templ.SafeScriptInline(`__templ_hideDatabaseModal_8a89`),
+		Call:       templ.SafeScript(`__templ_hideDatabaseModal_c438`),
+		CallInline: templ.SafeScriptInline(`__templ_hideDatabaseModal_c438`),
 	}
 }
 
 func loadConfigFromFetch(configID string) templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_loadConfigFromFetch_6d25`,
-		Function: `function __templ_loadConfigFromFetch_6d25(configID){var name;
+		Name: `__templ_loadConfigFromFetch_f514`,
+		Function: `function __templ_loadConfigFromFetch_f514(configID){var name;
 	fetch('/config/'+configID)
 	.then(response => {
 	    if (!response.ok) {
@@ -396,8 +396,8 @@ func loadConfigFromFetch(configID string) templ.ComponentScript {
         modal.classList.add('hidden');
     }, 300);
 }`,
-		Call:       templ.SafeScript(`__templ_loadConfigFromFetch_6d25`, configID),
-		CallInline: templ.SafeScriptInline(`__templ_loadConfigFromFetch_6d25`, configID),
+		Call:       templ.SafeScript(`__templ_loadConfigFromFetch_f514`, configID),
+		CallInline: templ.SafeScriptInline(`__templ_loadConfigFromFetch_f514`, configID),
 	}
 }
 

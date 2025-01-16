@@ -475,8 +475,8 @@ func Main(title string, spider *types.SpiderDetail, statusCodes []*types.StatusC
 
 func showDeletionModal() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_showDeletionModal_48d2`,
-		Function: `function __templ_showDeletionModal_48d2(){const modal = document.getElementById('deleteModal');
+		Name: `__templ_showDeletionModal_6fc0`,
+		Function: `function __templ_showDeletionModal_6fc0(){const modal = document.getElementById('deleteModal');
     const modalContent = modal.querySelector('div');
     const confirmDelete = document.getElementById('confirmDelete');
 
@@ -487,15 +487,15 @@ func showDeletionModal() templ.ComponentScript {
         modalContent.classList.remove('-translate-y-full', 'scale-95', 'opacity-0');
     }, 50);
 }`,
-		Call:       templ.SafeScript(`__templ_showDeletionModal_48d2`),
-		CallInline: templ.SafeScriptInline(`__templ_showDeletionModal_48d2`),
+		Call:       templ.SafeScript(`__templ_showDeletionModal_6fc0`),
+		CallInline: templ.SafeScriptInline(`__templ_showDeletionModal_6fc0`),
 	}
 }
 
 func hideDeletionModal() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_hideDeletionModal_c0ab`,
-		Function: `function __templ_hideDeletionModal_c0ab(){const modal = document.getElementById('deleteModal');
+		Name: `__templ_hideDeletionModal_0159`,
+		Function: `function __templ_hideDeletionModal_0159(){const modal = document.getElementById('deleteModal');
     const modalContent = modal.querySelector('div');
 
     modal.classList.add('opacity-0');
@@ -504,8 +504,8 @@ func hideDeletionModal() templ.ComponentScript {
         modal.classList.add('hidden');
     }, 300);
 }`,
-		Call:       templ.SafeScript(`__templ_hideDeletionModal_c0ab`),
-		CallInline: templ.SafeScriptInline(`__templ_hideDeletionModal_c0ab`),
+		Call:       templ.SafeScript(`__templ_hideDeletionModal_0159`),
+		CallInline: templ.SafeScriptInline(`__templ_hideDeletionModal_0159`),
 	}
 }
 
