@@ -5,7 +5,7 @@ go 1.23.4
 require (
 	github.com/IBM/sarama v1.45.0
 	github.com/a-h/templ v0.3.819
-	github.com/briandowns/spinner v1.23.1
+	github.com/briandowns/spinner v1.23.2
 	github.com/go-co-op/gocron/v2 v2.14.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
