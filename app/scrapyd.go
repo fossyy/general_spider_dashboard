@@ -343,3 +343,71 @@ func (sc *ScrapydStruct) GetSpiderUsage(project, jobID string) (*types.SpiderUsa
 
 	return &scrapydResp, nil
 }
+
+func (sc *ScrapydStruct) GetLogsAndResults() (*types.ScrapydLogsAndResults, error) {
+	url := fmt.Sprintf("%s/spiderstorage.json", sc.ScrapydURL)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get running spiders, status: %s", resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+	var scrapydResp types.ScrapydLogsAndResults
+	err = json.Unmarshal(body, &scrapydResp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON response: %w", err)
+	}
+
+	return &scrapydResp, nil
+}
+
+func (sc *ScrapydStruct) GetLog(project, job_id string) ([]byte, error) {
+	url := fmt.Sprintf("%s/spiderdownloadlog.json?project=%s&job_id=%s", sc.ScrapydURL, project, job_id)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get running spiders, status: %s", resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	return body, nil
+}
+
+func (sc *ScrapydStruct) GetResult(project, job_id string) ([]byte, error) {
+	url := fmt.Sprintf("%s/spiderdownloadresult.json?project=%s&job_id=%s", sc.ScrapydURL, project, job_id)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get running spiders, status: %s", resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	return body, nil
+}

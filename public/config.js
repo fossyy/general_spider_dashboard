@@ -575,6 +575,8 @@ function updateSelectedUrl(url, closeDropdown = false) {
     if (closeDropdown) {
         dropdownMenu.classList.add('hidden');
     }
+    baseUrl = url
+    updateJsonPreview()
 }
 
 customUrlInput.addEventListener('input', function(e) {

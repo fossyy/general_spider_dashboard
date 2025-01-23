@@ -7,6 +7,9 @@ import (
 	handlerGetConfigVersion "general_spider_controll_panel/handler/config/version"
 	handlerConfigs "general_spider_controll_panel/handler/configs"
 	deployHandler "general_spider_controll_panel/handler/deploy"
+	downloadHandler "general_spider_controll_panel/handler/download"
+	downloadLogHandler "general_spider_controll_panel/handler/download/log"
+	downloadResultHandler "general_spider_controll_panel/handler/download/result"
 	"general_spider_controll_panel/handler/kafka/broker"
 	"general_spider_controll_panel/handler/kafka/broker/add"
 	proxiesHandler "general_spider_controll_panel/handler/proxies"
@@ -37,6 +40,9 @@ func Setup() *http.ServeMux {
 	handler.HandleFunc("POST /api/preview/{id}", handlerPreview.POST)
 	handler.HandleFunc("GET /deploy", deployHandler.GET)
 	handler.HandleFunc("POST /deploy", deployHandler.POST)
+	handler.HandleFunc("GET /download", downloadHandler.GET)
+	handler.HandleFunc("GET /download/log/{project}/{job_id}", downloadLogHandler.GET)
+	handler.HandleFunc("GET /download/result/{project}/{job_id}", downloadResultHandler.GET)
 
 	kafkaRouter := http.NewServeMux()
 	handler.Handle("/kafka/", http.StripPrefix("/kafka", kafkaRouter))

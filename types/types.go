@@ -123,6 +123,17 @@ type ConfigDetail struct {
 	Name string `json:"name"`
 }
 
+type ScrapydLogsAndResults struct {
+	Logs []struct {
+		Project string   `json:"project"`
+		Jobs    []string `json:"jobs"`
+	} `json:"logs"`
+	Results []struct {
+		Project string   `json:"project"`
+		Data    []string `json:"data"`
+	} `json:"results"`
+}
+
 type JobIDDetail struct {
 	JobID string `json:"jobid"`
 	StatusCode

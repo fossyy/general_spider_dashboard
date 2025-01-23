@@ -1,0 +1,16 @@
+<div class=\"flex\">
+<div class=\"container mx-auto p-4\"><h1 class=\"text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6\">Crawling Logs and Results</h1><div class=\"flex flex-col lg:flex-row gap-4 h-auto lg:h-[calc(100vh-120px)]\"><div class=\"flex-1 bg-white rounded-lg shadow-md overflow-hidden\"><div class=\"p-3 md:p-4 border-b border-gray-200 bg-gray-50\"><h2 class=\"text-base md:text-lg font-semibold text-gray-700\">Logs</h2></div><div class=\"overflow-auto h-[50vh] lg:h-[calc(100%-60px)]\"><div class=\"divide-y divide-gray-200\">
+<div class=\"p-3 md:p-4\"><div class=\"flex items-center justify-between mb-2\"><h3 class=\"text-xs md:text-sm font-medium text-gray-900 break-all\">
+</h3></div><ul class=\"space-y-2\">
+<li class=\"flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 px-3 md:pl-4 md:pr-2 bg-gray-50 rounded-lg\"><span class=\"text-xs md:text-sm text-gray-600 mb-2 sm:mb-0\">
+</span> <a href=\"
+\" class=\"w-full sm:w-auto px-3 py-1 text-xs font-medium text-blue-700 hover:text-blue-900 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors\">Download Log</a></li>
+</ul></div>
+</div></div></div><div class=\"flex-1 bg-white rounded-lg shadow-md overflow-hidden mt-4 lg:mt-0\"><div class=\"p-3 md:p-4 border-b border-gray-200 bg-gray-50\"><h2 class=\"text-base md:text-lg font-semibold text-gray-700\">Results</h2></div><div class=\"overflow-auto h-[50vh] lg:h-[calc(100%-60px)]\"><div class=\"divide-y divide-gray-200\">
+<div class=\"p-3 md:p-4\"><h3 class=\"text-xs md:text-sm font-medium text-gray-900 break-all mb-3 md:mb-4\">
+</h3><ul class=\"space-y-3\">
+<li class=\"flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 px-3 md:pl-4 md:pr-2 bg-gray-50 rounded-lg\"><div class=\"flex items-center space-x-2 mb-2 sm:mb-0\"><svg class=\"w-4 h-4 md:w-5 md:h-5 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\"></path></svg> <span class=\"text-xs md:text-sm text-gray-600\">
+</span></div><a href=\"
+\" class=\"w-full sm:w-auto px-3 py-1 text-xs font-medium text-green-700 hover:text-green-900 bg-green-100 rounded-md hover:bg-green-200 transition-colors\">Download</a></li>
+</ul></div>
+</div></div></div></div></div></div>
