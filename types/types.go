@@ -179,6 +179,7 @@ type Database interface {
 	GetDomains() ([]string, error)
 	GetConfigs() ([]*models.Config, error)
 	GetDomainsWithSchema() ([]string, error)
+	DeleteConfigByID(id string) error
 
 	GetCombinedVersion(id string) (*models.CombinedVersion, error)
 
@@ -208,7 +209,7 @@ type Database interface {
 	GetKafkaBrokersByName(name string) ([]*models.KafkaBroker, error)
 	GetKafkaBrokersById(id string) (*models.KafkaBroker, error)
 	CreateKafkaBroker(kafkaBroker *models.KafkaBroker) error
-
+	DeleteKafkaBroker(id string) error
 	//GetKafkaTopics() ([]*models.KafkaTopic, error)
 	//IsTopicPresent(name string) bool
 	//CreateKafkaTopic(kafkaTopic *models.KafkaTopic) error

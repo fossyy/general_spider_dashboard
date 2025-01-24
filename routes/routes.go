@@ -4,6 +4,7 @@ import (
 	handlerPreview "general_spider_controll_panel/handler/api/preview"
 	configHandler "general_spider_controll_panel/handler/config"
 	handlerConfigByID "general_spider_controll_panel/handler/config/configByID"
+	handlerDeleteConfig "general_spider_controll_panel/handler/config/delete"
 	handlerGetConfigVersion "general_spider_controll_panel/handler/config/version"
 	handlerConfigs "general_spider_controll_panel/handler/configs"
 	deployHandler "general_spider_controll_panel/handler/deploy"
@@ -12,6 +13,7 @@ import (
 	downloadResultHandler "general_spider_controll_panel/handler/download/result"
 	"general_spider_controll_panel/handler/kafka/broker"
 	"general_spider_controll_panel/handler/kafka/broker/add"
+	kafkaBrokerDeleteHandler "general_spider_controll_panel/handler/kafka/broker/delete"
 	proxiesHandler "general_spider_controll_panel/handler/proxies"
 	handlerSpidersDomainList "general_spider_controll_panel/handler/spiders"
 	handlerSpiderDetails "general_spider_controll_panel/handler/spiders/details"
@@ -25,6 +27,7 @@ func Setup() *http.ServeMux {
 	handler.HandleFunc("GET /config", configHandler.GET)
 	handler.HandleFunc("POST /config", configHandler.POST)
 	handler.HandleFunc("GET /config/{id}", handlerConfigByID.GET)
+	handler.HandleFunc("DELETE /config/{id}", handlerDeleteConfig.DELETE)
 	handler.HandleFunc("GET /config/version/{id}", handlerGetConfigVersion.GET)
 	handler.HandleFunc("GET /configs", handlerConfigs.GET)
 	handler.HandleFunc("GET /spiders", handlerSpidersDomainList.GET)
@@ -49,6 +52,7 @@ func Setup() *http.ServeMux {
 	kafkaRouter.HandleFunc("/{$}", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/kafka/broker", http.StatusSeeOther)
 	})
+	kafkaRouter.HandleFunc("DELETE /broker/{id}", kafkaBrokerDeleteHandler.DELETE)
 	kafkaRouter.HandleFunc("GET /broker", broker.GET)
 	kafkaRouter.HandleFunc("GET /broker/add", kafkaBrokerAddHandler.GET)
 	kafkaRouter.HandleFunc("POST /broker/add", kafkaBrokerAddHandler.POST)
