@@ -64,9 +64,9 @@ func Main(title string, brokers []*models.KafkaBroker) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(broker.BrokerID.String())
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("broker-" + broker.BrokerID.String())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/kafka/broker/kafka.templ`, Line: 36, Col: 110}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/kafka/broker/kafka.templ`, Line: 34, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -77,9 +77,9 @@ func Main(title string, brokers []*models.KafkaBroker) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(broker.BrokerGroup)
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(broker.BrokerID.String())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/kafka/broker/kafka.templ`, Line: 37, Col: 117}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/kafka/broker/kafka.templ`, Line: 35, Col: 110}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -90,9 +90,9 @@ func Main(title string, brokers []*models.KafkaBroker) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 string
-				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(broker.Host)
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(broker.BrokerGroup)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/kafka/broker/kafka.templ`, Line: 38, Col: 85}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/kafka/broker/kafka.templ`, Line: 36, Col: 117}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -103,9 +103,9 @@ func Main(title string, brokers []*models.KafkaBroker) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(broker.Port)
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(broker.Host)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/kafka/broker/kafka.templ`, Line: 39, Col: 85}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/kafka/broker/kafka.templ`, Line: 37, Col: 85}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -115,7 +115,12 @@ func Main(title string, brokers []*models.KafkaBroker) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, showDeletionModal(broker.BrokerGroup))
+				var templ_7745c5c3_Var7 string
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(broker.Port)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/kafka/broker/kafka.templ`, Line: 38, Col: 85}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -123,8 +128,7 @@ func Main(title string, brokers []*models.KafkaBroker) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var7 templ.ComponentScript = showDeletionModal(broker.BrokerGroup)
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7.Call)
+				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, showDeletionModal(broker.BrokerGroup, broker.BrokerID.String()))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -132,33 +136,25 @@ func Main(title string, brokers []*models.KafkaBroker) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-			}
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 10)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, hideDeletionModal())
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
+				var templ_7745c5c3_Var8 templ.ComponentScript = showDeletionModal(broker.BrokerGroup, broker.BrokerID.String())
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8.Call)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 10)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
 			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 11)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var8 templ.ComponentScript = hideDeletionModal()
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8.Call)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 12)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
 			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, hideDeletionModal())
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 13)
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 12)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -167,7 +163,24 @@ func Main(title string, brokers []*models.KafkaBroker) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 13)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, hideDeletionModal())
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 14)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 templ.ComponentScript = hideDeletionModal()
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 15)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -181,25 +194,28 @@ func Main(title string, brokers []*models.KafkaBroker) templ.Component {
 	})
 }
 
-func showDeletionModal(group string) templ.ComponentScript {
+func showDeletionModal(name, id string) templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_showDeletionModal_24cd`,
-		Function: `function __templ_showDeletionModal_24cd(group){const modal = document.getElementById('deleteModal');
+		Name: `__templ_showDeletionModal_1c3b`,
+		Function: `function __templ_showDeletionModal_1c3b(name, id){const modal = document.getElementById('deleteModal');
     const modalContent = modal.querySelector('div');
     const confirmDelete = document.getElementById('confirmDelete');
-	const brokerGroup = document.getElementById('brokerGroup')
-	const brokerCount = document.getElementById('brokerCount')
+	const brokerName = document.getElementById('brokerName')
+	const brokerID = document.getElementById('brokerID')
 
-	brokerGroup.textContent = group
+	brokerName.textContent = name
+	brokerID.textContent = id
 	const rows = document.querySelectorAll('.broker-group');
 	let count = 0;
 	
-    rows.forEach(row => {
-        if (row && row.textContent.trim() === group) {
-            count++;
-        }
-    });
-	brokerCount.textContent = count
+    // rows.forEach(row => {
+    //     if (row && row.textContent.trim() === group) {
+    //         count++;
+    //     }
+    // });
+	// brokerCount.textContent = count
+	confirmDelete.setAttribute("hx-delete", "/kafka/broker/" + id + "?consent=true");
+    confirmDelete.setAttribute("hx-target", "#broker-" + id);
     htmx.process(confirmDelete);
     modal.classList.remove('hidden');
     setTimeout(() => {
@@ -207,8 +223,8 @@ func showDeletionModal(group string) templ.ComponentScript {
         modalContent.classList.remove('-translate-y-full', 'scale-95', 'opacity-0');
     }, 50);
 }`,
-		Call:       templ.SafeScript(`__templ_showDeletionModal_24cd`, group),
-		CallInline: templ.SafeScriptInline(`__templ_showDeletionModal_24cd`, group),
+		Call:       templ.SafeScript(`__templ_showDeletionModal_1c3b`, name, id),
+		CallInline: templ.SafeScriptInline(`__templ_showDeletionModal_1c3b`, name, id),
 	}
 }
 
