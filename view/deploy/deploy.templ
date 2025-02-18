@@ -1,726 +1,738 @@
 package deployView
 
 import (
-	"fmt"
-	"general_spider_controll_panel/types"
-	"general_spider_controll_panel/types/models"
-	"general_spider_controll_panel/view/layout"
+"fmt"
+"general_spider_controll_panel/types"
+"general_spider_controll_panel/types/models"
+"general_spider_controll_panel/view/layout"
 )
 
 templ Main(title string, domains []string) {
-	@layout.Base(title) {
-		<div class="flex">
-			@layout.LeftNavbar("Deploy")
-			<div class="container mx-auto px-4 py-8">
-				<h1 class="text-3xl font-bold text-gray-800 mb-6">Deploy New Spider</h1>
-				<div class="bg-white shadow-md rounded-lg overflow-hidden">
-					<div class="p-6">
-						<form
-							id="deploySpiderForm"
-							hx-post="/deploy"
-						>
-							<div class="mb-6">
-								<label for="domainSelect" class="block text-sm font-medium text-gray-700 mb-2">Select Website Domain</label>
-								<select
-									id="domainSelect"
-									name="domainSelect"
-									hx-get="?action=get-configs"
-									hx-trigger="change"
-									hx-target="#configSelect"
-									hx-swap="innerHTML"
-									required
-									class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-								>
-									<option value="None">Choose a domain</option>
-									for _, domain := range domains {
-										<option value={ domain }>{ domain }</option>
-									}
-								</select>
+@layout.Base(title) {
+<div class="flex">
+	@layout.LeftNavbar("Deploy")
+	<div class="container mx-auto px-4 py-8">
+		<h1 class="text-3xl font-bold text-gray-800 mb-6">Deploy New Spider</h1>
+		<div class="bg-white shadow-md rounded-lg overflow-hidden">
+			<div class="p-6">
+				<form id="deploySpiderForm" hx-post="/deploy">
+					<div class="mb-6">
+						<label for="domainSelect" class="block text-sm font-medium text-gray-700 mb-2">Select Website
+							Domain</label>
+						<select id="domainSelect" name="domainSelect" hx-get="?action=get-configs" hx-trigger="change"
+							hx-target="#configSelect" hx-swap="innerHTML" required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+							<option value="None">Choose a domain</option>
+							for _, domain := range domains {
+							<option value={ domain }>{ domain }</option>
+							}
+						</select>
+					</div>
+					<div class="mb-6">
+						<label for="configSelect" class="block text-sm font-medium text-gray-700 mb-2">Select
+							Configuration</label>
+						<select id="configSelect" name="configSelect" required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+							<option value="">Choose a configuration</option>
+						</select>
+					</div>
+					<div class="mb-6">
+						<label for="proxies" class="block text-sm font-medium text-gray-700">
+							Select Proxies
+						</label>
+						<div class="relative">
+							<div id="proxy-list-continer" class="space-y-2" hx-get="?action=get-proxies"
+								hx-trigger="load">
+								<div class="h-32 w-full bg-gray-200 rounded animate-pulse"></div>
+								<div class="p-4 bg-yellow-100 rounded-md space-y-2">
+									<div class="h-4 w-56 bg-yellow-200 rounded animate-pulse"></div>
+									<div class="h-3 w-72 bg-yellow-200 rounded animate-pulse"></div>
+								</div>
 							</div>
-							<div class="mb-6">
-								<label for="configSelect" class="block text-sm font-medium text-gray-700 mb-2">Select Configuration</label>
-								<select
-									id="configSelect"
-									name="configSelect"
-									required
-									class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-								>
-									<option value="">Choose a configuration</option>
-								</select>
-							</div>
-							<div class="mb-6">
-								<label for="proxies" class="block text-sm font-medium text-gray-700">
-									Select Proxies
-								</label>
-								<div class="relative">
-									<div id="proxy-list-continer" class="space-y-2" hx-get="?action=get-proxies" hx-trigger="load">
-										<div class="h-32 w-full bg-gray-200 rounded animate-pulse"></div>
-										<div class="p-4 bg-yellow-100 rounded-md space-y-2">
-											<div class="h-4 w-56 bg-yellow-200 rounded animate-pulse"></div>
-											<div class="h-3 w-72 bg-yellow-200 rounded animate-pulse"></div>
-										</div>
+						</div>
+						<div id="selectedProxies" class="mt-2 flex flex-wrap gap-2"></div>
+						<input type="hidden" id="selectedProxiesInput" name="selectedProxies" value="" />
+					</div>
+					<div class="mb-6">
+						<div id="parseModal"
+							class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden opacity-0 transition-opacity duration-300 z-50">
+							<div
+								class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white transform transition-all duration-300 -translate-y-full scale-95 opacity-0 z-50">
+								<div class="mt-3 text-center">
+									<h3 class="text-lg leading-6 font-medium text-gray-900">Confirm Deletion</h3>
+									<div class="mt-2 px-7 py-3">
+										<input type="text" id="header-input"
+											class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
+											placeholder="cookie1=value1; cookie2=value2; cookie3=value3" />
+									</div>
+									<div class="items-center px-4 py-3">
+										<button type="button" onClick={ parseHeader() }
+											class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 transition duration-300">
+											Parse Header
+										</button>
+										<button type="button" onClick={ hideDeletionModal() }
+											class="mt-3 px-4 py-2 bg-white text-gray-700 text-base font-medium rounded-md w-full shadow-sm border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition duration-300">
+											Cancel
+										</button>
 									</div>
 								</div>
-								<div id="selectedProxies" class="mt-2 flex flex-wrap gap-2"></div>
-								<input type="hidden" id="selectedProxiesInput" name="selectedProxies" value=""/>
 							</div>
-							<div class="mb-6">
-								<div id="parseModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden opacity-0 transition-opacity duration-300 z-50">
-									<div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white transform transition-all duration-300 -translate-y-full scale-95 opacity-0 z-50">
-										<div class="mt-3 text-center">
-											<h3 class="text-lg leading-6 font-medium text-gray-900">Confirm Deletion</h3>
-											<div class="mt-2 px-7 py-3">
-												<input
-													type="text"
-													id="header-input"
-													class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
-													placeholder="cookie1=value1; cookie2=value2; cookie3=value3"
-												/>
-											</div>
-											<div class="items-center px-4 py-3">
-												<button type="button" onClick={ parseHeader() } class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 transition duration-300">
-													Parse Header
-												</button>
-												<button type="button" onClick={ hideDeletionModal() } class="mt-3 px-4 py-2 bg-white text-gray-700 text-base font-medium rounded-md w-full shadow-sm border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition duration-300">
-													Cancel
-												</button>
-											</div>
-										</div>
-									</div>
-								</div>
-								<label for="json-input" class="block text-sm font-medium text-gray-700 mb-2">Cookie JSON (Opsional)</label>
-								<textarea
-									id="json-input"
-									rows="6"
-									class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500 font-mono"
-									placeholder='{
+						</div>
+						<label for="json-input" class="block text-sm font-medium text-gray-700 mb-2">Cookie JSON
+							(Opsional)</label>
+						<textarea id="json-input" rows="6"
+							class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500 font-mono"
+							placeholder='{
   "cookie_1": "value_1",
   "cookie_2": "value_2",
   "cookie_3": "value_3",
   "cookie_4": "value_4",
 }
-'
-								></textarea>
-								<div class="mb-6">
-									<div class="flex space-x-4">
-										<button
-											type="button"
-											onClick={ parseJson() }
-											class="flex-1 bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:shadow-outline"
-										>
-											Parse JSON
-										</button>
-										<button
-											type="button"
-											onClick={ showDeletionModal() }
-											class="flex-1 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:shadow-outline"
-										>
-											Parse Header
-										</button>
-									</div>
-									<div id="result" class="mt-6 p-4 bg-gray-100 rounded-lg hidden">
-										<h3 class="text-lg font-semibold mb-2">Parsed Cookies:</h3>
-										<pre id="parsed-cookies" class="whitespace-pre-wrap break-words"></pre>
-										<input type="hidden" id="cookies-input" name="cookies"/>
-									</div>
-								</div>
-							</div>
-							<div class="mb-6">
-								<label for="outputDestination" class="block text-sm font-medium text-gray-700 mb-2">Output Destination</label>
-								<select
-									id="outputDestination"
-									name="outputDestination"
-									hx-get="?action=get-additional-output-settings"
-									hx-trigger="change"
-									hx-target="#additionalOutputSettings"
-									required
-									class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-								>
-									<option value="">Choose an output destination</option>
-									<option value="local">Local</option>
-									<option value="kafka">Kafka</option>
-								</select>
-							</div>
-							<div class="mb-6" id="additionalOutputSettings" name="additionalOutputSettings"></div>
-							<div class="mb-6">
-								<label class="text-base font-medium text-gray-900">Deployment Time</label>
-								<p class="text-sm text-gray-500">Choose when to deploy the spider</p>
-								<fieldset class="mt-4">
-									<div class="space-y-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-10">
-										<div class="flex items-center">
-											<input id="run-now" name="deploymentTime" type="radio" value="now" checked class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
-											<label for="run-now" class="ml-3 block text-sm font-medium text-gray-700">Run Now</label>
-										</div>
-										<div class="flex items-center">
-											<input id="schedule" name="deploymentTime" type="radio" value="schedule" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
-											<label for="schedule" class="ml-3 block text-sm font-medium text-gray-700">Schedule Run</label>
-										</div>
-									</div>
-								</fieldset>
-							</div>
-							<div id="scheduleOptions" class="mb-6 hidden">
-								<div class="space-y-6">
-									<div>
-										<label class="text-base font-medium text-gray-900">Schedule Type</label>
-										<p class="text-sm text-gray-500">Choose between simple or advanced scheduling</p>
-										<div class="mt-4 flex rounded-md shadow-sm" role="group" aria-label="Schedule Type">
-											<button type="button" id="simpleSchedule" class="px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 border border-indigo-300 rounded-l-lg hover:bg-indigo-200 focus:z-10 focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-200 focus:text-indigo-800" aria-pressed="true">
-												Simple
-											</button>
-											<button type="button" id="advancedSchedule" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-200 focus:text-indigo-800">
-												Advanced
-											</button>
-										</div>
-									</div>
-									<div id="simpleScheduleOptions">
-										<label for="simpleFrequency" class="block text-sm font-medium text-gray-700">Frequency</label>
-										<select id="simpleFrequency" name="simpleFrequency" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-											<option value="hourly">Hourly</option>
-											<option value="daily">Daily</option>
-											<option value="weekly">Weekly</option>
-											<option value="monthly">Monthly</option>
-										</select>
-									</div>
-									<div id="advancedScheduleOptions" class="hidden">
-										<div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-											<div class="sm:col-span-2">
-												<label for="minute" class="block text-sm font-medium text-gray-700">Minute</label>
-												<select id="minute" name="minute" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-													<option value="*">Every minute</option>
-													<script>
-                                                                for (let i = 0; i < 60; i++) {
-                                                                    document.write(`<option value="${i}">${i.toString().padStart(2, '0')}</option>`);
-                                                                }
-                                                            </script>
-												</select>
-											</div>
-											<div class="sm:col-span-2">
-												<label for="hour" class="block text-sm font-medium text-gray-700">Hour</label>
-												<select id="hour" name="hour" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-													<option value="*">Every hour</option>
-													<script>
-                                                                for (let i = 0; i < 24; i++) {
-                                                                    document.write(`<option value="${i}">${i.toString().padStart(2, '0')}</option>`);
-                                                                }
-                                                            </script>
-												</select>
-											</div>
-											<div class="sm:col-span-2">
-												<label for="dayOfMonth" class="block text-sm font-medium text-gray-700">Day of Month</label>
-												<select id="dayOfMonth" name="dayOfMonth" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-													<option value="*">Every day</option>
-													<script>
-                                                                for (let i = 1; i <= 31; i++) {
-                                                                    document.write(`<option value="${i}">${i}</option>`);
-                                                                }
-                                                            </script>
-												</select>
-											</div>
-											<div class="sm:col-span-3">
-												<label for="month" class="block text-sm font-medium text-gray-700">Month</label>
-												<select id="month" name="month" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-													<option value="*">Every month</option>
-													<option value="1">January</option>
-													<option value="2">February</option>
-													<option value="3">March</option>
-													<option value="4">April</option>
-													<option value="5">May</option>
-													<option value="6">June</option>
-													<option value="7">July</option>
-													<option value="8">August</option>
-													<option value="9">September</option>
-													<option value="10">October</option>
-													<option value="11">November</option>
-													<option value="12">December</option>
-												</select>
-											</div>
-											<div class="sm:col-span-3">
-												<label for="dayOfWeek" class="block text-sm font-medium text-gray-700">Day of Week</label>
-												<select id="dayOfWeek" name="dayOfWeek" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-													<option value="*">Every day</option>
-													<option value="0">Sunday</option>
-													<option value="1">Monday</option>
-													<option value="2">Tuesday</option>
-													<option value="3">Wednesday</option>
-													<option value="4">Thursday</option>
-													<option value="5">Friday</option>
-													<option value="6">Saturday</option>
-												</select>
-											</div>
-										</div>
-									</div>
-									<div>
-										<label for="cronExpression" class="block text-sm font-medium text-gray-700">Generated Cron Expression</label>
-										<div class="mt-1 flex rounded-md shadow-sm">
-											<span class="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">Cron:</span>
-											<input type="text" id="cronExpression" name="cronExpression" class="block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" readonly/>
-										</div>
-										<p class="mt-2 text-sm text-gray-500">This is the cron expression generated from your selections above.</p>
-									</div>
-									<div>
-										<label for="nextRunTime" class="block text-sm font-medium text-gray-700">Next Run Time</label>
-										<div class="mt-1">
-											<input type="text" id="nextRunTime" name="nextRunTime" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" readonly/>
-										</div>
-										<p class="mt-2 text-sm text-gray-500">This is when the spider will next run based on the current schedule.</p>
-									</div>
-								</div>
-							</div>
-							<div class="mb-6">
-								<label for="customSettings" class="block text-sm font-medium text-gray-700 mb-2">Additional Spider Custom Settings (JSON)</label>
-								<textarea
-									id="customSettings"
-									name="customSettings"
-									rows="4"
-									class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-									placeholder='{"DOWNLOAD_DELAY": 1, "CONCURRENT_REQUESTS": 16}'
-								></textarea>
-								<p class="mt-1 text-sm text-gray-500">Enter any additional settings in JSON format</p>
-							</div>
-							<div class="flex items-center justify-between">
-								<button
-									id="submitButton"
-									type="submit"
-									class="bg-blue-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-								>
-									Deploy Spider
+'></textarea>
+						<div class="mb-6">
+							<div class="flex space-x-4">
+								<button type="button" onClick={ parseJson() }
+									class="flex-1 bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:shadow-outline">
+									Parse JSON
+								</button>
+								<button type="button" onClick={ showDeletionModal() }
+									class="flex-1 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:shadow-outline">
+									Parse Header
 								</button>
 							</div>
-						</form>
+							<div id="result" class="mt-6 p-4 bg-gray-100 rounded-lg hidden">
+								<h3 class="text-lg font-semibold mb-2">Parsed Cookies:</h3>
+								<pre id="parsed-cookies" class="whitespace-pre-wrap break-words"></pre>
+								<input type="hidden" id="cookies-input" name="cookies" />
+							</div>
+						</div>
 					</div>
-				</div>
+					<div class="mb-6">
+						<label for="outputDestination" class="block text-sm font-medium text-gray-700 mb-2">Output
+							Destination</label>
+						<select id="outputDestination" name="outputDestination"
+							hx-get="?action=get-additional-output-settings" hx-trigger="change"
+							hx-target="#additionalOutputSettings" required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+							<option value="">Choose an output destination</option>
+							<option value="local">Local</option>
+							<option value="kafka">Kafka</option>
+						</select>
+					</div>
+					<div class="mb-6" id="additionalOutputSettings" name="additionalOutputSettings"></div>
+					<div class="mb-6">
+						<label class="text-base font-medium text-gray-900">Deployment Time</label>
+						<p class="text-sm text-gray-500">Choose when to deploy the spider</p>
+						<fieldset class="mt-4">
+							<div class="space-y-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-10">
+								<div class="flex items-center">
+									<input id="run-now" name="deploymentTime" type="radio" value="now" checked
+										class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+									<label for="run-now" class="ml-3 block text-sm font-medium text-gray-700">Run
+										Now</label>
+								</div>
+								<div class="flex items-center">
+									<input id="schedule" name="deploymentTime" type="radio" value="schedule"
+										class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+									<label for="schedule" class="ml-3 block text-sm font-medium text-gray-700">Schedule
+										Run</label>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+					<div id="scheduleOptions" class="mb-6 hidden">
+						<div class="space-y-6">
+							<div>
+								<label class="text-base font-medium text-gray-900">Schedule Type</label>
+								<p class="text-sm text-gray-500">Choose between simple or advanced scheduling</p>
+								<div class="mt-4 flex rounded-md shadow-sm" role="group" aria-label="Schedule Type">
+									<button type="button" id="simpleSchedule"
+										class="px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 border border-indigo-300 rounded-l-lg hover:bg-indigo-200 focus:z-10 focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-200 focus:text-indigo-800"
+										aria-pressed="true">
+										Simple
+									</button>
+									<button type="button" id="advancedSchedule"
+										class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-200 focus:text-indigo-800">
+										Advanced
+									</button>
+								</div>
+							</div>
+							<div id="simpleScheduleOptions">
+								<label for="simpleFrequency"
+									class="block text-sm font-medium text-gray-700">Frequency</label>
+								<select id="simpleFrequency" name="simpleFrequency"
+									class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+									<option value="hourly">Hourly</option>
+									<option value="daily">Daily</option>
+									<option value="weekly">Weekly</option>
+									<option value="monthly">Monthly</option>
+								</select>
+							</div>
+							<div id="advancedScheduleOptions" class="hidden">
+								<div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+									<div class="sm:col-span-2">
+										<label for="minute"
+											class="block text-sm font-medium text-gray-700">Minute</label>
+										<select id="minute" name="minute"
+											class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+											<option value="*">Every minute</option>
+											<script>
+												for (let i = 0; i < 60; i++) {
+													document.write(`<option value="${i}">${i.toString().padStart(2, '0')}</option>`);
+												}
+											</script>
+										</select>
+									</div>
+									<div class="sm:col-span-2">
+										<label for="hour" class="block text-sm font-medium text-gray-700">Hour</label>
+										<select id="hour" name="hour"
+											class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+											<option value="*">Every hour</option>
+											<script>
+												for (let i = 0; i < 24; i++) {
+													document.write(`<option value="${i}">${i.toString().padStart(2, '0')}</option>`);
+												}
+											</script>
+										</select>
+									</div>
+									<div class="sm:col-span-2">
+										<label for="dayOfMonth" class="block text-sm font-medium text-gray-700">Day of
+											Month</label>
+										<select id="dayOfMonth" name="dayOfMonth"
+											class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+											<option value="*">Every day</option>
+											<script>
+												for (let i = 1; i <= 31; i++) {
+													document.write(`<option value="${i}">${i}</option>`);
+												}
+											</script>
+										</select>
+									</div>
+									<div class="sm:col-span-3">
+										<label for="month" class="block text-sm font-medium text-gray-700">Month</label>
+										<select id="month" name="month"
+											class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+											<option value="*">Every month</option>
+											<option value="1">January</option>
+											<option value="2">February</option>
+											<option value="3">March</option>
+											<option value="4">April</option>
+											<option value="5">May</option>
+											<option value="6">June</option>
+											<option value="7">July</option>
+											<option value="8">August</option>
+											<option value="9">September</option>
+											<option value="10">October</option>
+											<option value="11">November</option>
+											<option value="12">December</option>
+										</select>
+									</div>
+									<div class="sm:col-span-3">
+										<label for="dayOfWeek" class="block text-sm font-medium text-gray-700">Day of
+											Week</label>
+										<select id="dayOfWeek" name="dayOfWeek"
+											class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+											<option value="*">Every day</option>
+											<option value="0">Sunday</option>
+											<option value="1">Monday</option>
+											<option value="2">Tuesday</option>
+											<option value="3">Wednesday</option>
+											<option value="4">Thursday</option>
+											<option value="5">Friday</option>
+											<option value="6">Saturday</option>
+										</select>
+									</div>
+								</div>
+							</div>
+							<div>
+								<label for="cronExpression" class="block text-sm font-medium text-gray-700">Generated
+									Cron Expression</label>
+								<div class="mt-1 flex rounded-md shadow-sm">
+									<span
+										class="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">Cron:</span>
+									<input type="text" id="cronExpression" name="cronExpression"
+										class="block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+								</div>
+								<p class="mt-2 text-sm text-gray-500">This is the cron expression generated from your
+									selections above.</p>
+							</div>
+							<div>
+								<label for="nextRunTime" class="block text-sm font-medium text-gray-700">Next Run
+									Time</label>
+								<div class="mt-1">
+									<input type="text" id="nextRunTime" name="nextRunTime"
+										class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+										readonly />
+								</div>
+								<p class="mt-2 text-sm text-gray-500">This is when the spider will next run based on the
+									current schedule.</p>
+							</div>
+						</div>
+					</div>
+					<div class="mb-6">
+						<label for="customSettings" class="block text-sm font-medium text-gray-700 mb-2">Additional
+							Spider Custom Settings (JSON)</label>
+						<textarea id="customSettings" name="customSettings" rows="4"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+							placeholder='{"DOWNLOAD_DELAY": 1, "CONCURRENT_REQUESTS": 16}'></textarea>
+						<p class="mt-1 text-sm text-gray-500">Enter any additional settings in JSON format</p>
+					</div>
+					<div class="flex items-center justify-between">
+						<button id="submitButton" type="submit"
+							class="bg-blue-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed">
+							Deploy Spider
+						</button>
+					</div>
+				</form>
 			</div>
 		</div>
-		<script>
-			document.body.addEventListener('htmx:beforeRequest', function(event) {
-			if (event.target && event.target.id == "deploySpiderForm") {
-				document.getElementById('submitButton').disabled = true;
-				document.getElementById('submitButton').textContent = 'Submitting...';
-			}
-			});
-			document.addEventListener('DOMContentLoaded', function() {
-				const outputDestination = document.getElementById('outputDestination');
-				const kafkaConfig = document.getElementById('kafkaConfig');
-				const deploymentTimeRadios = document.getElementsByName('deploymentTime');
-				const scheduleOptions = document.getElementById('scheduleOptions');
-				const simpleScheduleButton = document.getElementById('simpleSchedule');
-				const advancedScheduleButton = document.getElementById('advancedSchedule');
-				const simpleScheduleOptions = document.getElementById('simpleScheduleOptions');
-				const advancedScheduleOptions = document.getElementById('advancedScheduleOptions');
-				const simpleFrequency = document.getElementById('simpleFrequency');
-				const cronExpression = document.getElementById('cronExpression');
-				const nextRunTime = document.getElementById('nextRunTime');
-				const advancedInputs = ['minute', 'hour', 'dayOfMonth', 'month', 'dayOfWeek'];
+	</div>
+</div>
+<script>
+	document.body.addEventListener('htmx:beforeRequest', function (event) {
+		if (event.target && event.target.id == "deploySpiderForm") {
+			document.getElementById('submitButton').disabled = true;
+			document.getElementById('submitButton').textContent = 'Submitting...';
+		}
+	});
+	function isValidCronExpression(cronExpression) {
+		const cronRegex = /^(\*|([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])|\*\/([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])) (\*|([0-9]|1[0-9]|2[0-3])|\*\/([0-9]|1[0-9]|2[0-3])) (\*|([1-9]|1[0-9]|2[0-9]|3[0-1])|\*\/([1-9]|1[0-9]|2[0-9]|3[0-1])) (\*|([1-9]|1[0-2])|\*\/([1-9]|1[0-2])) (\*|([0-6])|\*\/([0-6]))$/;
 
-				outputDestination.addEventListener('change', function() {
-					kafkaConfig.classList.toggle('hidden', this.value !== 'kafka');
-				});
+		return cronRegex.test(cronExpression);
+	}
 
-				deploymentTimeRadios.forEach(radio => {
-					radio.addEventListener('change', function() {
-						scheduleOptions.classList.toggle('hidden', this.id === 'run-now');
-						updateCronExpression();
-					});
-				});
+	function validateCronExpression() {
+		const cronInput = document.getElementById('cronExpression');
+		const cronExpression = cronInput.value.trim();
 
-				simpleScheduleButton.addEventListener('click', function() {
-					simpleScheduleButton.classList.add('bg-indigo-100', 'text-indigo-700');
-					simpleScheduleButton.classList.remove('bg-white', 'text-gray-900');
-					advancedScheduleButton.classList.add('bg-white', 'text-gray-900');
-					advancedScheduleButton.classList.remove('bg-indigo-100', 'text-indigo-700');
-					simpleScheduleOptions.classList.remove('hidden');
-					advancedScheduleOptions.classList.add('hidden');
-					updateCronExpression();
-				});
+		if (isValidCronExpression(cronExpression)) {
+			showToast("Valid cron expression", 2500, "success")
+		} else {
+			showToast("Invalid cron expression", 2500, "error")
+		}
+	}
 
-				advancedScheduleButton.addEventListener('click', function() {
-					advancedScheduleButton.classList.add('bg-indigo-100', 'text-indigo-700');
-					advancedScheduleButton.classList.remove('bg-white', 'text-gray-900');
-					simpleScheduleButton.classList.add('bg-white', 'text-gray-900');
-					simpleScheduleButton.classList.remove('bg-indigo-100', 'text-indigo-700');
-					advancedScheduleOptions.classList.remove('hidden');
-					simpleScheduleOptions.classList.add('hidden');
-					updateCronExpression();
-				});
+	document.addEventListener('DOMContentLoaded', () => {
+		const cronInput = document.getElementById('cronExpression');
+		cronInput.addEventListener('input', validateCronExpression);
+	});
 
-				simpleFrequency.addEventListener('change', updateCronExpression);
+	document.addEventListener('DOMContentLoaded', function () {
+		const outputDestination = document.getElementById('outputDestination');
+		const kafkaConfig = document.getElementById('kafkaConfig');
+		const deploymentTimeRadios = document.getElementsByName('deploymentTime');
+		const scheduleOptions = document.getElementById('scheduleOptions');
+		const simpleScheduleButton = document.getElementById('simpleSchedule');
+		const advancedScheduleButton = document.getElementById('advancedSchedule');
+		const simpleScheduleOptions = document.getElementById('simpleScheduleOptions');
+		const advancedScheduleOptions = document.getElementById('advancedScheduleOptions');
+		const simpleFrequency = document.getElementById('simpleFrequency');
+		const cronExpression = document.getElementById('cronExpression');
+		const nextRunTime = document.getElementById('nextRunTime');
+		const advancedInputs = ['minute', 'hour', 'dayOfMonth', 'month', 'dayOfWeek'];
 
-				advancedInputs.forEach(inputId => {
-					document.getElementById(inputId).addEventListener('change', updateCronExpression);
-				});
+		outputDestination.addEventListener('change', function () {
+			kafkaConfig.classList.toggle('hidden', this.value !== 'kafka');
+		});
 
-				function updateCronExpression() {
-					let expression = '';
-
-					if (document.getElementById('schedule').checked) {
-						if (!advancedScheduleOptions.classList.contains('hidden')) {
-							expression = advancedInputs.map(inputId => document.getElementById(inputId).value || '*').join(' ');
-						} else {
-							const frequency = simpleFrequency.value;
-							switch (frequency) {
-								case 'hourly':
-									expression = '0 * * * *';
-									break;
-								case 'daily':
-									expression = '0 0 * * *';
-									break;
-								case 'weekly':
-									expression = '0 0 * * 0';
-									break;
-								case 'monthly':
-									expression = '0 0 1 * *';
-									break;
-								default:
-									expression = '* * * * *';
-							}
-						}
-						cronExpression.value = expression;
-						updateNextRunTime(expression);
-					} else {
-						cronExpression.value = 'Run immediately';
-						nextRunTime.value = 'Immediately';
-					}
-				}
-
-				function updateNextRunTime(cronExpression) {
-					const now = new Date();
-					now.setMinutes(now.getMinutes() + 5);
-					nextRunTime.value = now.toLocaleString();
-				}
-
+		deploymentTimeRadios.forEach(radio => {
+			radio.addEventListener('change', function () {
+				scheduleOptions.classList.toggle('hidden', this.id === 'run-now');
 				updateCronExpression();
 			});
-			document.body.addEventListener('htmx:afterSwap', function(event) {
-				if (event.target.id === "proxy-list-continer") {
-					const proxiesSelect = document.getElementById('proxies-list');
-					const selectedProxiesDiv = document.getElementById('selectedProxies');
-					const selectedProxiesInput = document.getElementById('selectedProxiesInput');
-					function updateSelectedProxies() {
-						selectedProxiesDiv.innerHTML = '';
-						const selectedValues = [];
-						Array.from(proxiesSelect.selectedOptions).forEach(option => {
-							const badge = document.createElement('span');
-							badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800';
-							badge.textContent = option.text;
+		});
 
-							const removeButton = document.createElement('button');
-							removeButton.className = 'ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none focus:bg-blue-500 focus:text-white';
-							removeButton.innerHTML = '&times;';
-							removeButton.setAttribute('aria-label', `Remove ${option.text}`);
-							removeButton.onclick = function() {
-								option.selected = false;
-								updateSelectedProxies();
-							};
+		simpleScheduleButton.addEventListener('click', function () {
+			simpleScheduleButton.classList.add('bg-indigo-100', 'text-indigo-700');
+			simpleScheduleButton.classList.remove('bg-white', 'text-gray-900');
+			advancedScheduleButton.classList.add('bg-white', 'text-gray-900');
+			advancedScheduleButton.classList.remove('bg-indigo-100', 'text-indigo-700');
+			simpleScheduleOptions.classList.remove('hidden');
+			advancedScheduleOptions.classList.add('hidden');
+			updateCronExpression();
+		});
 
-							badge.appendChild(removeButton);
-							selectedProxiesDiv.appendChild(badge);
-							selectedValues.push(option.value);
-						});
+		advancedScheduleButton.addEventListener('click', function () {
+			advancedScheduleButton.classList.add('bg-indigo-100', 'text-indigo-700');
+			advancedScheduleButton.classList.remove('bg-white', 'text-gray-900');
+			simpleScheduleButton.classList.add('bg-white', 'text-gray-900');
+			simpleScheduleButton.classList.remove('bg-indigo-100', 'text-indigo-700');
+			advancedScheduleOptions.classList.remove('hidden');
+			simpleScheduleOptions.classList.add('hidden');
+			updateCronExpression();
+		});
 
-						selectedProxiesInput.value = selectedValues.join(',');
+		simpleFrequency.addEventListener('change', updateCronExpression);
+
+		advancedInputs.forEach(inputId => {
+			document.getElementById(inputId).addEventListener('change', updateCronExpression);
+		});
+
+		function updateCronExpression() {
+			let expression = '';
+
+			if (document.getElementById('schedule').checked) {
+				if (!advancedScheduleOptions.classList.contains('hidden')) {
+					expression = advancedInputs.map(inputId => document.getElementById(inputId).value || '*').join(' ');
+				} else {
+					const frequency = simpleFrequency.value;
+					switch (frequency) {
+						case 'hourly':
+							expression = '0 * * * *';
+							break;
+						case 'daily':
+							expression = '0 0 * * *';
+							break;
+						case 'weekly':
+							expression = '0 0 * * 0';
+							break;
+						case 'monthly':
+							expression = '0 0 1 * *';
+							break;
+						default:
+							expression = '* * * * *';
 					}
-
-						proxiesSelect.addEventListener('change', updateSelectedProxies);
-					}
-				else if (event.target.id === "additionalOutputSettings") {
-					const dropdownToggle = document.getElementById('dropdown-toggle');
-					const dropdownContent = document.getElementById('dropdown-content');
-					const brokerSearch = document.getElementById('broker-search');
-					const selectAllBtn = document.getElementById('select-all-btn');
-					const selectedBrokers = document.getElementById('selectedBrokers');
-					const selectedCount = document.getElementById('selected-count');
-					const selectedBrokersInput = document.getElementById('selectedBrokersInput');
-
-					function initBrokerList() {
-						const brokerList = document.getElementById('broker-list');
-						brokerList.addEventListener('change', updateSelectedBrokers);
-						selectAllBtn.addEventListener('click', toggleSelectAll);
-						dropdownToggle.addEventListener('click', toggleDropdown);
-						// brokerSearch.addEventListener('input', filterBrokers);
-						document.addEventListener('click', closeDropdownOutside);
-					}
-
-					function toggleDropdown() {
-						dropdownContent.classList.toggle('hidden');
-					}
-
-					function closeDropdownOutside(event) {
-						if (!dropdownToggle.contains(event.target) && !dropdownContent.contains(event.target)) {
-							dropdownContent.classList.add('hidden');
-						}
-					}
-
-					// function filterBrokers() {
-					// 	const searchTerm = brokerSearch.value.toLowerCase();
-					// 	const brokerList = document.getElementById('broker-list');
-					// 	const brokerItems = brokerList.querySelectorAll('li');
-
-					// 	brokerItems.forEach(item => {
-					// 		const brokerText = item.textContent.toLowerCase();
-					// 		item.style.display = brokerText.includes(searchTerm) ? '' : 'none';
-					// 	});
-					// }
-
-					function updateSelectedBrokers() {
-						const brokerList = document.getElementById('broker-list');
-						const selectedCheckboxes = brokerList.querySelectorAll('input[type="checkbox"]:checked');
-						const selectedBrokersArray = Array.from(selectedCheckboxes).map(checkbox => checkbox.value);
-						
-						updateSelectedCount(selectedBrokersArray.length);
-						updateSelectAllButton();
-						updateSelectedBrokersUI(selectedBrokersArray);
-						updateHiddenInput(selectedBrokersArray);
-					}
-
-					function updateSelectedBrokersUI(selectedBrokersArray) {
-						selectedBrokers.innerHTML = '';
-
-						selectedBrokersArray.forEach(broker => {
-							const badge = document.createElement('span');
-							badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800';
-							badge.textContent = broker;
-
-							const removeButton = document.createElement('button');
-							removeButton.className = 'ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none focus:bg-blue-500 focus:text-white';
-							removeButton.innerHTML = '&times;';
-							removeButton.setAttribute('aria-label', `Remove ${broker}`);
-							removeButton.onclick = function() {
-								removeBroker(broker);
-							};
-
-							badge.appendChild(removeButton);
-							selectedBrokers.appendChild(badge);
-						});
-					}
-
-					function removeBroker(broker) {
-						const brokerList = document.getElementById('broker-list');
-						const checkbox = brokerList.querySelector(`input[value="${broker}"]`);
-						if (checkbox) {
-							checkbox.checked = false;
-							updateSelectedBrokers();
-						}
-					}
-
-					function updateHiddenInput(selectedBrokersArray) {
-						selectedBrokersInput.value = selectedBrokersArray.join(',');
-					}
-
-					function toggleSelectAll() {
-						const brokerList = document.getElementById('broker-list');
-						console.log(brokerList)
-						const checkboxes = brokerList.querySelectorAll('input[type="checkbox"]');
-						const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-
-						checkboxes.forEach(checkbox => {
-							checkbox.checked = !allChecked;
-						});
-
-						updateSelectedBrokers();
-					}
-
-					function updateSelectAllButton() {
-						const brokerList = document.getElementById('broker-list');
-						const checkboxes = brokerList.querySelectorAll('input[type="checkbox"]');
-						const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-
-						selectAllBtn.textContent = allChecked ? 'Deselect All' : 'Select All';
-					}
-
-					function updateSelectedCount(count) {
-						selectedCount.textContent = count > 0 ? `${count} broker(s) selected` : 'Select Kafka Brokers';
-					}
-
-					initBrokerList();
 				}
-			});
-		</script>
-	}
+				cronExpression.value = expression;
+				updateNextRunTime(expression);
+			} else {
+				cronExpression.value = 'Run immediately';
+				nextRunTime.value = 'Immediately';
+			}
+		}
+
+		function updateNextRunTime(cronExpression) {
+			const now = new Date();
+			now.setMinutes(now.getMinutes() + 5);
+			nextRunTime.value = now.toLocaleString();
+		}
+
+		updateCronExpression();
+	});
+	document.body.addEventListener('htmx:afterSwap', function (event) {
+		if (event.target.id === "proxy-list-continer") {
+			const proxiesSelect = document.getElementById('proxies-list');
+			const selectedProxiesDiv = document.getElementById('selectedProxies');
+			const selectedProxiesInput = document.getElementById('selectedProxiesInput');
+			function updateSelectedProxies() {
+				selectedProxiesDiv.innerHTML = '';
+				const selectedValues = [];
+				Array.from(proxiesSelect.selectedOptions).forEach(option => {
+					const badge = document.createElement('span');
+					badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800';
+					badge.textContent = option.text;
+
+					const removeButton = document.createElement('button');
+					removeButton.className = 'ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none focus:bg-blue-500 focus:text-white';
+					removeButton.innerHTML = '&times;';
+					removeButton.setAttribute('aria-label', `Remove ${option.text}`);
+					removeButton.onclick = function () {
+						option.selected = false;
+						updateSelectedProxies();
+					};
+
+					badge.appendChild(removeButton);
+					selectedProxiesDiv.appendChild(badge);
+					selectedValues.push(option.value);
+				});
+
+				selectedProxiesInput.value = selectedValues.join(',');
+			}
+
+			proxiesSelect.addEventListener('change', updateSelectedProxies);
+		}
+		else if (event.target.id === "additionalOutputSettings") {
+			const dropdownToggle = document.getElementById('dropdown-toggle');
+			const dropdownContent = document.getElementById('dropdown-content');
+			const brokerSearch = document.getElementById('broker-search');
+			const selectAllBtn = document.getElementById('select-all-btn');
+			const selectedBrokers = document.getElementById('selectedBrokers');
+			const selectedCount = document.getElementById('selected-count');
+			const selectedBrokersInput = document.getElementById('selectedBrokersInput');
+
+			function initBrokerList() {
+				const brokerList = document.getElementById('broker-list');
+				brokerList.addEventListener('change', updateSelectedBrokers);
+				selectAllBtn.addEventListener('click', toggleSelectAll);
+				dropdownToggle.addEventListener('click', toggleDropdown);
+				// brokerSearch.addEventListener('input', filterBrokers);
+				document.addEventListener('click', closeDropdownOutside);
+			}
+
+			function toggleDropdown() {
+				dropdownContent.classList.toggle('hidden');
+			}
+
+			function closeDropdownOutside(event) {
+				if (!dropdownToggle.contains(event.target) && !dropdownContent.contains(event.target)) {
+					dropdownContent.classList.add('hidden');
+				}
+			}
+
+			// function filterBrokers() {
+			// 	const searchTerm = brokerSearch.value.toLowerCase();
+			// 	const brokerList = document.getElementById('broker-list');
+			// 	const brokerItems = brokerList.querySelectorAll('li');
+
+			// 	brokerItems.forEach(item => {
+			// 		const brokerText = item.textContent.toLowerCase();
+			// 		item.style.display = brokerText.includes(searchTerm) ? '' : 'none';
+			// 	});
+			// }
+
+			function updateSelectedBrokers() {
+				const brokerList = document.getElementById('broker-list');
+				const selectedCheckboxes = brokerList.querySelectorAll('input[type="checkbox"]:checked');
+				const selectedBrokersArray = Array.from(selectedCheckboxes).map(checkbox => checkbox.value);
+
+				updateSelectedCount(selectedBrokersArray.length);
+				updateSelectAllButton();
+				updateSelectedBrokersUI(selectedBrokersArray);
+				updateHiddenInput(selectedBrokersArray);
+			}
+
+			function updateSelectedBrokersUI(selectedBrokersArray) {
+				selectedBrokers.innerHTML = '';
+
+				selectedBrokersArray.forEach(broker => {
+					const badge = document.createElement('span');
+					badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800';
+					badge.textContent = broker;
+
+					const removeButton = document.createElement('button');
+					removeButton.className = 'ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none focus:bg-blue-500 focus:text-white';
+					removeButton.innerHTML = '&times;';
+					removeButton.setAttribute('aria-label', `Remove ${broker}`);
+					removeButton.onclick = function () {
+						removeBroker(broker);
+					};
+
+					badge.appendChild(removeButton);
+					selectedBrokers.appendChild(badge);
+				});
+			}
+
+			function removeBroker(broker) {
+				const brokerList = document.getElementById('broker-list');
+				const checkbox = brokerList.querySelector(`input[value="${broker}"]`);
+				if (checkbox) {
+					checkbox.checked = false;
+					updateSelectedBrokers();
+				}
+			}
+
+			function updateHiddenInput(selectedBrokersArray) {
+				selectedBrokersInput.value = selectedBrokersArray.join(',');
+			}
+
+			function toggleSelectAll() {
+				const brokerList = document.getElementById('broker-list');
+				console.log(brokerList)
+				const checkboxes = brokerList.querySelectorAll('input[type="checkbox"]');
+				const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+				checkboxes.forEach(checkbox => {
+					checkbox.checked = !allChecked;
+				});
+
+				updateSelectedBrokers();
+			}
+
+			function updateSelectAllButton() {
+				const brokerList = document.getElementById('broker-list');
+				const checkboxes = brokerList.querySelectorAll('input[type="checkbox"]');
+				const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+				selectAllBtn.textContent = allChecked ? 'Deselect All' : 'Select All';
+			}
+
+			function updateSelectedCount(count) {
+				selectedCount.textContent = count > 0 ? `${count} broker(s) selected` : 'Select Kafka Brokers';
+			}
+
+			initBrokerList();
+		}
+	});
+</script>
+}
 }
 
 script showDeletionModal() {
-    const modal = document.getElementById('parseModal');
-    const modalContent = modal.querySelector('div');
-    const confirmDelete = document.getElementById('confirmDelete');
-    const proxyToDelete = document.getElementById('proxyToDelete');
+const modal = document.getElementById('parseModal');
+const modalContent = modal.querySelector('div');
+const confirmDelete = document.getElementById('confirmDelete');
+const proxyToDelete = document.getElementById('proxyToDelete');
 
-    modal.classList.remove('hidden');
-    setTimeout(() => {
-        modal.classList.remove('opacity-0');
-        modalContent.classList.remove('-translate-y-full', 'scale-95', 'opacity-0');
-    }, 50);
+modal.classList.remove('hidden');
+setTimeout(() => {
+modal.classList.remove('opacity-0');
+modalContent.classList.remove('-translate-y-full', 'scale-95', 'opacity-0');
+}, 50);
 }
 
 script parseHeader() {
-	const parsedCookies = document.getElementById('parsed-cookies');
-	const headerInput = document.getElementById('header-input');
-	const cookiesInput = document.getElementById('cookies-input')
+const parsedCookies = document.getElementById('parsed-cookies');
+const headerInput = document.getElementById('header-input');
+const cookiesInput = document.getElementById('cookies-input')
 
-	function parseCookieHeader(headerString) {
-		const cookies = {};
-		headerString.split(';').forEach(cookie => {
-			const trimmedCookie = cookie.trim();
-			
-			if (trimmedCookie.includes('=')) {
-				const [name, value] = trimmedCookie.split('=');
-				const decodedValue = decodeURIComponent(value);
-				cookies[name] = decodedValue;
-			}
-		});
-		return cookies;
-	}
+function parseCookieHeader(headerString) {
+const cookies = {};
+headerString.split(';').forEach(cookie => {
+const trimmedCookie = cookie.trim();
 
-	function displayResult(cookies) {
-		parsedCookies.textContent = JSON.stringify(cookies, null, 2);
-		cookiesInput.value = JSON.stringify(cookies, null, 2);
-		result.classList.remove('hidden');
-	}
+if (trimmedCookie.includes('=')) {
+const [name, value] = trimmedCookie.split('=');
+const decodedValue = decodeURIComponent(value);
+cookies[name] = decodedValue;
+}
+});
+return cookies;
+}
 
-	const cookies = parseCookieHeader(headerInput.value);
-	displayResult(cookies);
+function displayResult(cookies) {
+parsedCookies.textContent = JSON.stringify(cookies, null, 2);
+cookiesInput.value = JSON.stringify(cookies, null, 2);
+result.classList.remove('hidden');
+}
 
-	const modal = document.getElementById('parseModal');
-	const modalContent = modal.querySelector('div');
+const cookies = parseCookieHeader(headerInput.value);
+displayResult(cookies);
 
-	modal.classList.add('opacity-0');
-	modalContent.classList.add('-translate-y-full', 'scale-95', 'opacity-0');
-	setTimeout(() => {
-		modal.classList.add('hidden');
-	}, 300);
+const modal = document.getElementById('parseModal');
+const modalContent = modal.querySelector('div');
+
+modal.classList.add('opacity-0');
+modalContent.classList.add('-translate-y-full', 'scale-95', 'opacity-0');
+setTimeout(() => {
+modal.classList.add('hidden');
+}, 300);
 
 }
 
 script parseJson() {
-	const parsedCookies = document.getElementById('parsed-cookies');
-	const cookiesInput = document.getElementById('cookies-input')
-	try {
-        const jsonCookies = JSON.parse(document.getElementById("json-input").value)
-        parsedCookies.textContent = JSON.stringify(jsonCookies, null, 2);
-		cookiesInput.value = JSON.stringify(jsonCookies, null, 2);
-        result.classList.remove('hidden');
-    } catch (error) {
-        showToast("Invalid JSON input : "+error, 5000, 'error');
-    }
+const parsedCookies = document.getElementById('parsed-cookies');
+const cookiesInput = document.getElementById('cookies-input')
+try {
+const jsonCookies = JSON.parse(document.getElementById("json-input").value)
+parsedCookies.textContent = JSON.stringify(jsonCookies, null, 2);
+cookiesInput.value = JSON.stringify(jsonCookies, null, 2);
+result.classList.remove('hidden');
+} catch (error) {
+showToast("Invalid JSON input : "+error, 5000, 'error');
+}
 }
 
 script hideDeletionModal() {
-    const modal = document.getElementById('parseModal');
-    const modalContent = modal.querySelector('div');
+const modal = document.getElementById('parseModal');
+const modalContent = modal.querySelector('div');
 
-    modal.classList.add('opacity-0');
-    modalContent.classList.add('-translate-y-full', 'scale-95', 'opacity-0');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-    }, 300);;
+modal.classList.add('opacity-0');
+modalContent.classList.add('-translate-y-full', 'scale-95', 'opacity-0');
+setTimeout(() => {
+modal.classList.add('hidden');
+}, 300);;
 }
 
 templ ProxiesUI(proxies []*models.Proxy) {
-	if len(proxies) == 0 {
-		<select id="proxies-list" required multiple class="block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></select>
-		<div>
-			<div class="p-4 rounded-md bg-yellow-100 text-yellow-800">
-				<p class="text-sm font-medium">No proxies available at the moment.</p>
-				<p class="mt-1 text-xs">
-					Please check the
-					<a href="/proxies" class="underline font-medium hover:text-yellow-900">
-						proxy status page
-					</a>
-					for available proxy information.
-				</p>
-			</div>
-		</div>
-	} else {
-		<select id="proxies-list" required multiple class="block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-			for _, proxy := range proxies {
-				<option value={ fmt.Sprintf("%s://%s:%s", proxy.Protocol, proxy.Address, proxy.Port) }>{ fmt.Sprintf("%s:%s", proxy.Address, proxy.Port) }</option>
-			}
-		</select>
-		<p class="text-xs text-gray-500">Hold Ctrl (Windows) or Command (Mac) to select multiple proxies</p>
+if len(proxies) == 0 {
+<select id="proxies-list" required multiple
+	class="block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></select>
+<div>
+	<div class="p-4 rounded-md bg-yellow-100 text-yellow-800">
+		<p class="text-sm font-medium">No proxies available at the moment.</p>
+		<p class="mt-1 text-xs">
+			Please check the
+			<a href="/proxies" class="underline font-medium hover:text-yellow-900">
+				proxy status page
+			</a>
+			for available proxy information.
+		</p>
+	</div>
+</div>
+} else {
+<select id="proxies-list" required multiple
+	class="block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+	for _, proxy := range proxies {
+	<option value={ fmt.Sprintf("%s://%s:%s", proxy.Protocol, proxy.Address, proxy.Port) }>{ fmt.Sprintf("%s:%s",
+		proxy.Address, proxy.Port) }</option>
 	}
+</select>
+<p class="text-xs text-gray-500">Hold Ctrl (Windows) or Command (Mac) to select multiple proxies</p>
+}
 }
 
 templ ConfigListUI(configs []*types.ConfigDetail) {
-	if len(configs) == 0 {
-		<option value="">Choose a configuration</option>
-	}
-	for _, config := range configs {
-		<option value={ config.ID }>{ config.Name }</option>
-	}
+if len(configs) == 0 {
+<option value="">Choose a configuration</option>
+}
+for _, config := range configs {
+<option value={ config.ID }>{ config.Name }</option>
+}
 }
 
 templ BrokerUI(broker *models.KafkaBroker) {
-	<li class="px-3 py-2 hover:bg-gray-100">
-		<label class="flex items-center space-x-3">
-			<input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600" value={broker.BrokerID.String()}/>
-			<span>{ broker.BrokerGroup } | { broker.Host }:{ broker.Port }</span>
-		</label>
-	</li>
+<li class="px-3 py-2 hover:bg-gray-100">
+	<label class="flex items-center space-x-3">
+		<input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600" value={broker.BrokerID.String()} />
+		<span>{ broker.BrokerGroup } | { broker.Host }:{ broker.Port }</span>
+	</label>
+</li>
 }
 
 templ BrokersUI(brokers []*models.KafkaBroker) {
-	for _, broker := range brokers {
-		@BrokerUI(broker)
-	}
+for _, broker := range brokers {
+@BrokerUI(broker)
+}
 }
 
 templ KafkaSettingsUI(brokers []*models.KafkaBroker) {
-	<div id="kafkaConfig" class="mb-6 ">
-		<h3 class="text-lg font-medium text-gray-700 mb-4">Kafka Configuration</h3>
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-			<div class="relative">
-				<label for="broker-dropdown" class="block text-sm font-medium text-gray-700 mb-2">Kafka Brokers</label>
-				<div id="broker-dropdown" class="relative">
-					<button
-						id="dropdown-toggle"
-						type="button"
-						class="bg-white w-full flex items-center justify-between rounded-md border border-gray-300 px-4 py-2 text-left text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					>
-						<span id="selected-count">Select Kafka Brokers</span>
-						<svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-							<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-						</svg>
-					</button>
-					<div
-						id="dropdown-content"
-						class="hidden absolute left-0 right-0 mt-2 rounded-md bg-white shadow-lg z-10"
-					>
-						<div class="p-2">
-							<input
-								type="text"
-								placeholder="Search brokers..."
-								hx-get="?action=query-broker"
-								hx-trigger="keyup changed delay:500ms, focus"
-								hx-target="#broker-list"
-								name="q"
-								class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-								id="broker-search"
-							/>
-						</div>
-						<div class="px-2 py-1 border-b">
-							<button
-								type="button"
-								id="select-all-btn"
-								class="w-full px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-							>
-								Select All
-							</button>
-						</div>
-						<div class="max-h-60 overflow-y-auto">
-							<ul class="py-1" id="broker-list">
-								for _, broker := range brokers {
-									@BrokerUI(broker)
-								}
-							</ul>
-						</div>
+<div id="kafkaConfig" class="mb-6 ">
+	<h3 class="text-lg font-medium text-gray-700 mb-4">Kafka Configuration</h3>
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+		<div class="relative">
+			<label for="broker-dropdown" class="block text-sm font-medium text-gray-700 mb-2">Kafka Brokers</label>
+			<div id="broker-dropdown" class="relative">
+				<button id="dropdown-toggle" type="button"
+					class="bg-white w-full flex items-center justify-between rounded-md border border-gray-300 px-4 py-2 text-left text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+					<span id="selected-count">Select Kafka Brokers</span>
+					<svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+						fill="currentColor">
+						<path fill-rule="evenodd"
+							d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+							clip-rule="evenodd"></path>
+					</svg>
+				</button>
+				<div id="dropdown-content"
+					class="hidden absolute left-0 right-0 mt-2 rounded-md bg-white shadow-lg z-10">
+					<div class="p-2">
+						<input type="text" placeholder="Search brokers..." hx-get="?action=query-broker"
+							hx-trigger="keyup changed delay:500ms, focus" hx-target="#broker-list" name="q"
+							class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							id="broker-search" />
 					</div>
-					<div id="selectedBrokers" class="mt-2 flex flex-wrap gap-2"></div>
-					<input type="hidden" id="selectedBrokersInput" name="selectedBrokers" value=""/>
+					<div class="px-2 py-1 border-b">
+						<button type="button" id="select-all-btn"
+							class="w-full px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+							Select All
+						</button>
+					</div>
+					<div class="max-h-60 overflow-y-auto">
+						<ul class="py-1" id="broker-list">
+							for _, broker := range brokers {
+							@BrokerUI(broker)
+							}
+						</ul>
+					</div>
 				</div>
-			</div>
-			<div>
-				<label for="kafka-topics" class="block text-sm font-medium text-gray-700 mb-2">Kafka Topics</label>
-				<input name="kafkaTopic" id="kafkaTopic" class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500" />
+				<div id="selectedBrokers" class="mt-2 flex flex-wrap gap-2"></div>
+				<input type="hidden" id="selectedBrokersInput" name="selectedBrokers" value="" />
 			</div>
 		</div>
+		<div>
+			<label for="kafka-topics" class="block text-sm font-medium text-gray-700 mb-2">Kafka Topics</label>
+			<input name="kafkaTopic" id="kafkaTopic"
+				class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500" />
+		</div>
 	</div>
+</div>
 }

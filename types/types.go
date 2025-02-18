@@ -123,6 +123,17 @@ type ConfigDetail struct {
 	Name string `json:"name"`
 }
 
+type ScrapydLogsAndResults struct {
+	Logs []struct {
+		Project string   `json:"project"`
+		Jobs    []string `json:"jobs"`
+	} `json:"logs"`
+	Results []struct {
+		Project string   `json:"project"`
+		Data    []string `json:"data"`
+	} `json:"results"`
+}
+
 type JobIDDetail struct {
 	JobID string `json:"jobid"`
 	StatusCode
@@ -168,6 +179,7 @@ type Database interface {
 	GetDomains() ([]string, error)
 	GetConfigs() ([]*models.Config, error)
 	GetDomainsWithSchema() ([]string, error)
+	DeleteConfigByID(id string) error
 
 	GetCombinedVersion(id string) (*models.CombinedVersion, error)
 
@@ -197,7 +209,7 @@ type Database interface {
 	GetKafkaBrokersByName(name string) ([]*models.KafkaBroker, error)
 	GetKafkaBrokersById(id string) (*models.KafkaBroker, error)
 	CreateKafkaBroker(kafkaBroker *models.KafkaBroker) error
-
+	DeleteKafkaBroker(id string) error
 	//GetKafkaTopics() ([]*models.KafkaTopic, error)
 	//IsTopicPresent(name string) bool
 	//CreateKafkaTopic(kafkaTopic *models.KafkaTopic) error

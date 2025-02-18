@@ -45,6 +45,8 @@ function createConfigElement(config) {
                     <option value="root" ${config.tag === 'root' ? 'selected' : ''}>root</option>
                     <option value="global" ${config.tag === 'global' ? 'selected' : ''}>global</option>
                     <option value="parent" ${config.tag === 'parent' ? 'selected' : ''}>parent</option>
+                    <option value="detail_feature" ${config.tag === 'detail_feature' ? 'selected' : ''}>detail_feature</option>
+                    <option value="content_stat" ${config.tag === 'content_stat' ? 'selected' : ''}>content_stat</option>
                 </select>
                 <input placeholder="Enter key" value="${config.key || ''}" class="p-1 border border-gray-300 rounded-md flex-grow ${['_pagination', '_list'].includes(config.type) ? 'hidden' : ''}">
                 <input placeholder="Enter value" value="${config.value || ''}" class="p-1 border border-gray-300 rounded-md flex-grow ${['@section'].includes(config.type) ? 'hidden' : ''}">
@@ -575,6 +577,8 @@ function updateSelectedUrl(url, closeDropdown = false) {
     if (closeDropdown) {
         dropdownMenu.classList.add('hidden');
     }
+    baseUrl = url
+    updateJsonPreview()
 }
 
 customUrlInput.addEventListener('input', function(e) {

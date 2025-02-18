@@ -221,6 +221,10 @@ func (db *postgresDB) GetConfigs() ([]*models.Config, error) {
 	return configs, nil
 }
 
+func (db *postgresDB) DeleteConfigByID(id string) error {
+	return db.Model(&models.Config{}).Where("id = ?", id).Delete(&models.Config{}).Error
+}
+
 func (db *postgresDB) GetProxies() ([]*models.Proxy, error) {
 	var proxies []*models.Proxy
 	if err := db.Find(&proxies).Error; err != nil {
@@ -454,6 +458,18 @@ func (db *postgresDB) GetKafkaBrokersByName(name string) ([]*models.KafkaBroker,
 
 func (db *postgresDB) CreateKafkaBroker(broker *models.KafkaBroker) error {
 	return db.Create(broker).Error
+}
+
+func (db *postgresDB) DeleteKafkaBroker(id string) error {
+	tx := db.Begin()
+	var kafkaBroker models.KafkaBroker
+	if err := tx.Where("broker_id = ?", id).First(&kafkaBroker).Error; err != nil {
+		return err
+	}
+	if err := tx.Delete(&kafkaBroker).Error; err != nil {
+		return err
+	}
+	return tx.Commit().Error
 }
 
 //func (db *postgresDB) GetKafkaTopics() ([]*models.KafkaTopic, error) {
